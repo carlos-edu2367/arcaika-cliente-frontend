@@ -52,7 +52,7 @@ function ServiceCardComponent({ servico, imageUrl, isImageLoading, className }: 
       <div className="p-3 flex flex-col gap-2">
         <div>
           <span className="text-[10px] font-medium text-primary-600 uppercase tracking-wide">
-            {servico.categoria.valor}
+            {typeof servico.categoria === 'string' ? servico.categoria : servico.categoria.valor}
           </span>
           <Link to={`/servicos/${servico.id}`}>
             <h3 className="text-sm font-semibold text-neutral-900 leading-tight line-clamp-2 hover:text-primary-600 transition-colors">
@@ -76,7 +76,7 @@ function ServiceCardComponent({ servico, imageUrl, isImageLoading, className }: 
         <div className="flex items-center justify-between mt-1">
           <div>
             <span className="text-xs text-neutral-400">A partir de</span>
-            <p className="text-base font-bold text-primary-600">{formatCurrency(servico.preco)}</p>
+            <p className="text-base font-bold text-primary-600">{formatCurrency(Number(servico.preco))}</p>
           </div>
           <button
             onClick={() => adicionarServico.mutate({ id: servico.id })}
