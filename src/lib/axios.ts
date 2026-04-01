@@ -2,7 +2,7 @@ import axios, { type AxiosError } from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8000',
+  baseURL: import.meta.env.VITE_API_URL ?? 'https://arcaika-api-197035729546.southamerica-east1.run.app',
   timeout: 8_000,
   headers: { 'Content-Type': 'application/json' },
 })
