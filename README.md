@@ -32,7 +32,7 @@ Outros pacotes da plataforma (frontend do prestador, painel administrativo, back
 - **Server-state separado de client-state**: TanStack Query gerencia dados do servidor; Zustand gerencia estado de UI e sessão
 - **TypeScript estrito**: `strict: true` no tsconfig, zero `any` implícito
 
-## Como rodar (futuro)
+## Como rodar
 
 ```bash
 # Instalar dependências
@@ -54,12 +54,11 @@ npm run typecheck
 npm run lint
 ```
 
-> As variáveis de ambiente ficam em `.env.local` (não commitado). Copie `.env.example` como base.
 
 ## Variáveis de ambiente
 
 ```
-VITE_API_BASE_URL=https://api.arcaika.com.br
+VITE_API_BASE_URL=
 VITE_APP_ENV=development
 ```
 
@@ -79,14 +78,3 @@ VITE_APP_ENV=development
 | [09 — Segurança](docs/09-seguranca.md) | Auth, tokens, CSRF, sanitização |
 | [10 — UX Flows](docs/10-ux-flows.md) | Diagramas dos fluxos principais |
 
-## Contexto de sessão Claude
-
-Para abrir uma sessão de desenvolvimento já contextualizada, veja [`.claude/context.md`](.claude/context.md).
-
-## Identidade visual
-
-- **Primária**: Laranja `#F97316`
-- **Fundo**: Branco `#FFFFFF`
-- **Texto**: Preto `#111827`, Cinza `#6B7280`
-- **Superfície neutra**: `#F3F4F6`
-- **Assistente Arky**: avatar laranja com inicial "A"
