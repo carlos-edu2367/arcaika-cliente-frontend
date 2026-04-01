@@ -59,6 +59,7 @@ function ModalAvaliacao({
     mutationFn: () =>
       avaliacoesService.criar({
         alvo_id: servicoId,
+        pedido_id: pedidoId,
         tipo: 'servico',
         nota,
         comentario: comentario.trim() || undefined,

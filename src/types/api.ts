@@ -13,8 +13,11 @@ export interface MarketplaceParams {
   categoria?: string;
   cidade?: string;
   estado?: string;
+  localidade?: string;
   page?: number;
+  page_size?: number;
   limit?: number;
+  sort?: string;
 }
 
 export interface AvaliacoesPagedResponse {

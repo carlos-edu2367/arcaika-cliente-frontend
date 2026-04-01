@@ -4,6 +4,7 @@ export interface User {
 export interface Endereco {
   id: string;
   rua: string;
+  numero?: string;
   complemento?: string;
   bairro: string;
   cidade: string;

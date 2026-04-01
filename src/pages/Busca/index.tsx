@@ -4,7 +4,7 @@ import { Search, X, SlidersHorizontal, ArrowLeft, MapPin } from 'lucide-react'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Container } from '@/components/layout/Container'
 import { ServiceCard } from '@/components/marketplace/ServiceCard'
-import { useCategorias, useMarketplace } from '@/hooks/useMarketplace'
+import { useCategorias, useMarketplaceServicos } from '@/hooks/useMarketplace'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useLocationStore } from '@/stores/locationStore'
 import { cn } from '@/lib/utils'
@@ -71,14 +71,14 @@ export default function Busca() {
 
   const params: MarketplaceParams = {
     q: debouncedQ || undefined,
-    categoria_id: selectedCat,
+    categoria: selectedCat,
     localidade: localidade?.cidade ?? undefined,
     page: 1,
     page_size: 24,
     sort: sort === 'relevancia' ? undefined : sort,
   }
 
-  const { data, isLoading } = useMarketplace(params)
+  const { data, isLoading } = useMarketplaceServicos(params)
   const { data: categorias } = useCategorias()
 
   const setCategoria = (id: string | null) => {
@@ -88,7 +88,7 @@ export default function Busca() {
     setSearchParams(next)
   }
 
-  const results = data?.items ?? []
+  const results = data?.itens ?? []
 
   const isEmpty = !isLoading && results.length === 0
 
@@ -144,16 +144,15 @@ export default function Busca() {
             </button>
             {categorias.map((cat) => (
               <button
-                key={cat.id}
-                onClick={() => setCategoria(selectedCat === cat.id ? null : cat.id)}
+                key={cat.valor}
+                onClick={() => setCategoria(selectedCat === cat.valor ? null : cat.valor)}
                 className={cn(
                   'shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
-                  selectedCat === cat.id
+                  selectedCat === cat.valor
                     ? 'bg-primary text-white border-primary'
                     : 'bg-white text-neutral-600 border-neutral-200 hover:border-primary-300',
                 )}
               >
-                {cat.icone && <span className="mr-1">{cat.icone}</span>}
                 {cat.nome}
               </button>
             ))}
@@ -277,7 +276,7 @@ export default function Busca() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {results.map((servico) => (
-              <ServiceCard key={servico.id} servico={servico} />
+              <ServiceCard key={servico.id} servico={servico as any} />
             ))}
           </div>
         )}

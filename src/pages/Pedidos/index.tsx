@@ -18,6 +18,7 @@ const STATUS_TABS: { value: PedidoStatus | 'TODOS'; label: string }[] = [
 
 const STATUS_CONFIG: Record<PedidoStatus, { label: string; color: string; bg: string; Icon: React.ElementType }> = {
   PENDENTE: { label: 'Pendente', color: 'text-warning', bg: 'bg-warning-light', Icon: Clock },
+  PAGO: { label: 'Pago', color: 'text-info', bg: 'bg-info-light', Icon: Loader },
   CONFIRMADO: { label: 'Confirmado', color: 'text-info', bg: 'bg-info-light', Icon: Loader },
   EM_ANDAMENTO: { label: 'Em andamento', color: 'text-info', bg: 'bg-info-light', Icon: Loader },
   CONCLUIDO: { label: 'Concluído', color: 'text-success', bg: 'bg-success-light', Icon: CheckCircle },
@@ -44,13 +45,13 @@ function PedidoCard({ pedido }: { pedido: Pedido }) {
           </span>
         </div>
         <p className="text-sm font-semibold text-neutral-900 mt-0.5 truncate">
-          {pedido.itens.length > 0 ? pedido.itens[0]?.nome : 'Pedido'}
-          {pedido.itens.length > 1 ? ` +${pedido.itens.length - 1}` : ''}
+          {pedido.linhas.length > 0 ? pedido.linhas[0]?.titulo : 'Pedido'}
+          {pedido.linhas.length > 1 ? ` +${pedido.linhas.length - 1}` : ''}
         </p>
         <p className="text-xs text-neutral-400 mt-0.5">{formatDate(pedido.criado_em)}</p>
       </div>
       <div className="text-right shrink-0">
-        <p className="text-sm font-bold text-primary">{formatCurrency(pedido.total)}</p>
+        <p className="text-sm font-bold text-primary">{formatCurrency(Number(pedido.total))}</p>
         <ChevronRight size={16} className="text-neutral-300 mt-1 ml-auto" />
       </div>
     </Link>
@@ -71,7 +72,7 @@ export default function Pedidos() {
       } else {
         setAllPedidos((prev) => {
           const ids = new Set(prev.map((p) => p.id))
-          return [...prev, ...pedidos.filter((p) => !ids.has(p.id))]
+          return [...prev, ...pedidos.filter((p: Pedido) => !ids.has(p.id))]
         })
       }
     }
