@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcaika | Serviços Profissionais de Elite</title>
+    
+    <!-- SEO -->
+    <meta name="description" content="A plataforma definitiva para encontrar os melhores profissionais do Brasil. Pintura, elétrica, hidráulica e muito mais com segurança e rapidez.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --primary: #f97316;
+            --primary-glow: rgba(249, 115, 22, 0.5);
+            --bg: #030303;
+            --surface: rgba(23, 23, 23, 0.7);
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --text: #ffffff;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #eab308;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Background Mesh Gradients --- */
+        .mesh-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .mesh-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            animation: float 20s infinite alternate;
+        }
+
+        .blob-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary);
+            top: -10%;
+            right: -10%;
+        }
+
+        .blob-2 {
+            width: 400px;
+            height: 400px;
+            background: #3b82f6;
+            bottom: 10%;
+            left: -5%;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 100px) scale(1.1); }
+        }
+
+        /* --- Typography --- */
+        h1, h2, h3 {
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- UI Elements --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px 36px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #ea580c 100%);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--surface-border);
+            color: var(--text);
+        }
+
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- Header --- */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        header.scrolled {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 12px 0;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
+            display: block;
+            color: white; /* fallback caso falte a img */
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+
+        /* --- Hero --- */
+        .hero {
+            padding: 160px 0 100px;
+            text-align: center;
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            line-height: 1.05;
+            margin-bottom: 24px;
+            font-weight: 900;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(90deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 4vw, 1.25rem);
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 48px;
+            font-weight: 500;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* --- Stats Bar --- */
+        .stats {
+            padding: 60px 0;
+            border-top: 1px solid var(--surface-border);
+            border-bottom: 1px solid var(--surface-border);
+            margin: 40px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-item p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+
+        /* --- Features --- */
+        .features {
+            padding: 120px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-header h2 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 16px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--surface-border);
+            padding: 48px;
+            border-radius: 32px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top left, rgba(249, 115, 22, 0.1), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(249, 115, 22, 0.3);
+        }
+
+        .feature-card:hover::before { opacity: 1; }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(249, 115, 22, 0.1);
+            color: var(--primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        /* --- Mockup Sections --- */
+        .showcase {
+            padding: 100px 0;
+        }
+
+        .mockup-group {
+            margin-bottom: 120px;
+        }
+
+        .mockup-wrapper {
+            max-width: 340px;
+            margin: 0 auto 48px;
+            background: #111;
+            border: 10px solid #1a1a1a;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            position: relative;
+            aspect-ratio: 9/19;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mockup-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .mockup-placeholder {
+            color: var(--text-muted);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+        }
+
+        .showcase-text {
+            text-align: center;
+        }
+
+        .showcase-text h3 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .showcase-text p {
+            color: var(--text-muted);
+            font-size: 1.125rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* --- Download Section --- */
+        .download-box {
+            background: linear-gradient(135deg, #171717 0%, #0a0a0a 100%);
+            border: 1px solid var(--surface-border);
+            border-radius: 40px;
+            padding: 80px 40px;
+            text-align: center;
+            margin: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-box::after {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .app-links {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 48px;
+            align-items: center;
+        }
+
+        .store-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            color: #000;
+            padding: 12px 28px;
+            border-radius: 16px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 250px;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .store-btn:hover {
+            transform: scale(1.02);
+            filter: brightness(0.9);
+        }
+
+        .store-btn.apple {
+            background: #000;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* --- Custom Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            padding: 32px;
+            border-radius: 32px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(234, 179, 8, 0.1);
+            color: var(--warning);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .modal-content h4 {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .modal-content p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 14px 24px;
+            border-radius: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .modal-btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .modal-btn-glass {
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+            border: 1px solid var(--surface-border);
+        }
+        
+        .modal-btn-text {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+
+        .modal-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        .store-icon {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* --- Footer --- */
+        footer {
+            padding: 80px 0 40px;
+            border-top: 1px solid var(--surface-border);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        footer .logo-img { margin: 0 auto 24px; filter: grayscale(1) opacity(0.5); }
+
+        /* --- Desktop Refinements --- */
+        @media (min-width: 1024px) {
+            .hero-actions { flex-direction: row; border-radius: 99px; }
+            .hero-actions .btn { border-radius: 99px; }
+            .stats-grid { grid-template-columns: repeat(4, 1fr); }
+            .features-grid { grid-template-columns: repeat(3, 1fr); }
+            
+            .mockup-group {
+                display: flex;
+                align-items: center;
+                gap: 100px;
+                text-align: left;
+            }
+            .mockup-group:nth-child(even) { flex-direction: row-reverse; }
+            .mockup-group .mockup-wrapper { margin: 0; min-width: 360px; }
+            .mockup-group .showcase-text { text-align: left; }
+            .mockup-group .showcase-text p { margin: 0; }
+            
+            .app-links { flex-direction: row; justify-content: center; }
+        }
+
+        /* --- Animation Engine --- */
+        [data-anim] {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1s ease, transform 1s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+
+        [data-anim].active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stagger-1 { transition-delay: 0.1s; }
+        .stagger-2 { transition-delay: 0.2s; }
+        .stagger-3 { transition-delay: 0.3s; }
+    </style>
+</head>
+<body>
+
+    <div class="mesh-container">
+        <div class="mesh-blob blob-1"></div>
+        <div class="mesh-blob blob-2"></div>
+    </div>
+
+    <header id="header">
+        <div class="container nav">
+            <!-- Caso a imagem não carregue localmente, exibiremos texto formatado como fallback -->
+            <img src="assets/landing/logo_dark.png" alt="Arcaika" class="logo-img">
+            <a href="#download" class="btn btn-glass" style="padding: 10px 24px; border-radius: 12px; font-size: 0.875rem;">
+                <i data-lucide="download" style="width: 16px;"></i>
+                Instalar App
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <!-- HERO -->
+        <section class="hero">
+            <div class="container">
+                <h1 data-anim>Profissionais de elite <br><span>para sua obra.</span></h1>
+                <p data-anim class="stagger-1">O Arcaika conecta você aos melhores especialistas do Brasil. De pinturas complexas a reformas elétricas, tudo em um só lugar.</p>
+                <div class="hero-actions" data-anim class="stagger-2">
+                    <a href="/" class="btn btn-primary">Acessar o Site</a>
+                    <a href="#download" class="btn btn-glass">Baixar o App</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- STATS (Números substituídos por conceitos genéricos) -->
+        <section class="stats">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-item" data-anim>
+                        <h3>Rigor</h3>
+                        <p>Na Seleção</p>
+                    </div>
+                    <div class="stat-item" data-anim class="stagger-1">
+                        <h3>Garantia</h3>
+                        <p>Nos Serviços</p>
+                    </div>
+                    <div class="stat-item" data-anim class="stagger-2">
+                        <h3>Premium</h3>
+                        <p>Qualidade</p>
+                    </div>
+                    <div class="stat-item" data-anim class="stagger-3">
+                        <h3>Total</h3>
+                        <p>Segurança</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURES -->
+        <section id="features" class="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2 data-anim>Por que escolher o Arcaika?</h2>
+                    <p data-anim class="stagger-1">Excelência em cada etapa da sua jornada.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card" data-anim>
+                        <div class="feature-icon"><i data-lucide="star"></i></div>
+                        <h3>Seleção Rigorosa</h3>
+                        <p>Apenas os melhores profissionais de cada categoria são aprovados em nossa plataforma.</p>
+                    </div>
+                    <div class="feature-card" data-anim class="stagger-1">
+                        <div class="feature-icon"><i data-lucide="zap"></i></div>
+                        <h3>Orçamentos Ágeis</h3>
+                        <p>Receba propostas detalhadas em tempo recorde para qualquer tipo de projeto.</p>
+                    </div>
+                    <div class="feature-card" data-anim class="stagger-2">
+                        <div class="feature-icon"><i data-lucide="shield"></i></div>
+                        <h3>Garantia Arcaika</h3>
+                        <p>Seu dinheiro fica protegido até que o serviço seja concluído com total satisfação.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SHOWCASE -->
+        <section class="showcase">
+            <div class="container">
+                <div class="mockup-group">
+                    <div class="mockup-wrapper" data-anim>
+                        <img src="assets/landing/marketplace.png" alt="Interface Marketplace" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <span class="mockup-placeholder" style="display:none;">Marketplace UI</span>
+                    </div>
+                    <div class="showcase-text">
+                        <h3 data-anim>Interface Premium</h3>
+                        <p data-anim class="stagger-1">Encontre profissionais com a mesma facilidade que você pede um café. Filtros inteligentes e perfis detalhados.</p>
+                    </div>
+                </div>
+
+                <div class="mockup-group">
+                    <div class="mockup-wrapper" data-anim>
+                        <img src="assets/landing/wizard.png" alt="Interface Wizard" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <span class="mockup-placeholder" style="display:none;">Wizard UI</span>
+                    </div>
+                    <div class="showcase-text">
+                        <h3 data-anim>O Assistente Inteligente</h3>
+                        <p data-anim class="stagger-1">Descreva seu problema através de um fluxo intuitivo que gera orçamentos precisos, evitando surpresas no preço.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DOWNLOAD BOX -->
+        <section id="download" class="container">
+            <div class="download-box" data-anim>
+                <h2>Pronto para transformar sua casa?</h2>
+                <p>Baixe o app oficial ou utilize nosso site e comece sua jornada com o Arcaika hoje.</p>
+                
+                <div class="app-links">
+                    <a href="https://github.com/carlos-edu2367/arcaika-apk/releases/download/v1.0.0/Arcaika.apk" class="store-btn">
+                        <svg class="store-icon" viewBox="0 0 512 512">
+                            <path fill="#4CAF50" d="M37.5 16C37.5 16 37.5 16 37.5 16ZM37.5 16c-1.8 0-3.4.6-4.6 1.7L254.1 270.3l12.4-12.4L37.5 16zM32.9 17.7c-1.1 1.2-1.7 2.8-1.7 4.6V489.7c0 1.8.6 3.4 1.7 4.6l233.6-238.3L32.9 17.7zM266.5 282.7l-12.4 12.4L486.2 492.2c1.2-1.1 1.8-2.7 1.8-4.5V24.3c0-1.8-.6-3.4-1.8-4.6L266.5 282.7zM486.2 19.7L266.5 243.6 254.1 256l232.1 236.2c1.2-1.2 1.8-2.8 1.8-4.6V24.3c0-1.8-.6-3.4-1.8-4.6z"/>
+                        </svg>
+                        <span>Android (APK)</span>
+                    </a>
+                    
+                    <!-- Botão iOS acionando o Modal -->
+                    <button type="button" class="store-btn apple" id="ios-download">
+                        <svg class="store-icon" viewBox="0 0 384 512">
+                           <path fill="currentColor" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-31.4-71.7-111.4-1.7-130c0 0 0 0 0 0zm-58.5-121.3c21.2-26.7 18.5-61 17.6-66.2-7.8.2-36.7 6.4-58.5 32-19.8 23.3-15.3 53.6-14.4 59.8 9 1 35.8-6.1 55.3-25.6z"/>
+                        </svg>
+                        <span>App Store</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modal Warning iOS -->
+        <div class="modal-overlay" id="modal-ios" aria-hidden="true">
+            <div class="modal-content">
+                <div class="modal-icon">
+                    <i data-lucide="alert-triangle" style="width: 32px; height: 32px;"></i>
+                </div>
+                <h4>Aviso Importante</h4>
+                <p>A versão de iOS está passando por instabilidades no momento. Recomendamos que utilize nosso site diretamente pelo navegador para uma melhor experiência.</p>
+                <div class="modal-actions">
+                    <a href="/" class="modal-btn modal-btn-primary">Acessar o Site (Recomendado)</a>
+                    <a href="https://apps.apple.com/br/app/arcaika/id6754256950" class="modal-btn modal-btn-glass" target="_blank">Continuar para App Store</a>
+                    <button type="button" class="modal-btn modal-btn-text" id="close-modal-btn">Fechar aviso</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <img src="assets/landing/logo_dark.png" alt="Arcaika" class="logo-img" style="height: 30px;" onerror="this.style.display='none'">
+            <p>&copy; 2026 Arcaika Brasil. A plataforma de serviços de elite.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Init Lucide Icons
+        lucide.createIcons();
+
+        // Header Scroll Effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Animations Observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('[data-anim]').forEach(el => observer.observe(el));
+
+        // iOS Download Warning Modal Logic
+        const iosModal = document.getElementById('modal-ios');
+        const iosBtn = document.getElementById('ios-download');
+        const closeBtn = document.getElementById('close-modal-btn');
+        
+        // Abrir o modal
+        iosBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            iosModal.classList.add('active');
+            iosModal.setAttribute('aria-hidden', 'false');
+        });
+
+        // Função para fechar o modal
+        function closeModal() {
+            iosModal.classList.remove('active');
+            iosModal.setAttribute('aria-hidden', 'true');
+        }
+
+        // Fechar ao clicar no botão "Fechar aviso"
+        closeBtn.addEventListener('click', closeModal);
+
+        // Fechar ao clicar fora do modal (no overlay)
+        iosModal.addEventListener('click', function(e) {
+            if (e.target === iosModal) {
+                closeModal();
+            }
+        });
+        
+        // Fechar ao pressionar a tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && iosModal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
