@@ -316,10 +316,16 @@ export default function ServicoDetalhe() {
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-black text-primary font-poppins">
                       {formatCurrency(Number(servico.preco_promocional || servico.preco))}
+                      {servico.unidade_medida && (
+                        <span className="text-xl text-neutral-400 font-bold uppercase tracking-widest ml-2">
+                          / {servico.unidade_medida}
+                        </span>
+                      )}
                     </span>
                     {servico.em_promocao && (
                       <span className="text-sm text-neutral-400 line-through font-bold">
                         {formatCurrency(Number(servico.preco))}
+                        {servico.unidade_medida && `/${servico.unidade_medida}`}
                       </span>
                     )}
                   </div>
@@ -496,6 +502,9 @@ export default function ServicoDetalhe() {
                   ) : (
                     <>
                       Contratar por {formatCurrency(totalInvestimento)}
+                      {servico.unidade_medida && selectedProdutos.size === 0 && (
+                        <span className="text-xs opacity-70 ml-1">/{servico.unidade_medida}</span>
+                      )}
                       <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -522,6 +531,9 @@ export default function ServicoDetalhe() {
               <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Investimento Total</span>
               <span className="text-2xl font-black text-primary font-poppins">
                 {formatCurrency(totalInvestimento)}
+                {servico.unidade_medida && selectedProdutos.size === 0 && (
+                  <span className="text-xs text-neutral-400 ml-1">/{servico.unidade_medida}</span>
+                )}
               </span>
             </div>
             <button 

@@ -103,7 +103,7 @@ function Step1Revisao({ carrinho }: { carrinho: ReturnType<typeof useCarrinho>['
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-neutral-900 truncate">{s.titulo}</p>
                 <div className="flex justify-between items-end mt-1">
-                  <p className="text-xs text-neutral-500 font-medium">Qtd: {s.quantidade}</p>
+                  <p className="text-xs text-neutral-500 font-medium">Qtd: {s.quantidade} {s.unidade_medida && `(${s.unidade_medida})`}</p>
                   <p className="text-sm font-black text-primary">{formatCurrency(parseFloat(s.subtotal))}</p>
                 </div>
               </div>
@@ -485,7 +485,7 @@ function Step4Resumo({
           <div key={s.id} className="flex justify-between items-start text-xs py-1 border-b border-neutral-50 last:border-0 pb-2">
             <div className="min-w-0 flex-1">
               <p className="font-bold text-neutral-800 truncate">{s.titulo}</p>
-              <p className="text-[10px] text-neutral-400">Quantidade: {s.quantidade}</p>
+              <p className="text-[10px] text-neutral-400">Quantidade: {s.quantidade} {s.unidade_medida && `(${s.unidade_medida})`}</p>
             </div>
             <span className="font-black text-neutral-900 shrink-0 ml-4">{formatCurrency(parseFloat(s.subtotal))}</span>
           </div>

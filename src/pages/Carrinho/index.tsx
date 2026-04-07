@@ -137,7 +137,7 @@ export default function Carrinho() {
                         <div className="text-right shrink-0 flex flex-col justify-center">
                           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-tighter">Subtotal</p>
                           <p className="text-lg font-black text-neutral-900">{formatCurrency(parseFloat(s.subtotal))}</p>
-                          <p className="text-[10px] text-neutral-500">{formatCurrency(parseFloat(s.preco_unitario))} / un</p>
+                          <p className="text-[10px] text-neutral-500">{formatCurrency(parseFloat(s.preco_unitario))} / {s.unidade_medida || 'un'}</p>
                         </div>
                       </div>
 

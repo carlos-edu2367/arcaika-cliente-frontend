@@ -76,7 +76,14 @@ function ServiceCardComponent({ servico, imageUrl, isImageLoading, className }: 
         <div className="flex items-center justify-between mt-1">
           <div>
             <span className="text-xs text-neutral-400">A partir de</span>
-            <p className="text-base font-bold text-primary-600">{formatCurrency(Number(servico.preco))}</p>
+            <p className="text-base font-bold text-primary-600">
+              {formatCurrency(Number(servico.preco))}
+              {servico.unidade_medida && (
+                <span className="text-[10px] text-neutral-400 font-bold uppercase ml-1">
+                  / {servico.unidade_medida}
+                </span>
+              )}
+            </p>
           </div>
           <button
             onClick={() => adicionarServico.mutate({ id: servico.id })}

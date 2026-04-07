@@ -27,6 +27,7 @@ export interface Servico {
   preco_promocional?: number | string; 
   em_promocao?: boolean; 
   categoria: Categoria | string; 
+  unidade_medida?: string;
   organizacao: Organizacao; 
   fotos?: string[]; 
   fotos_count?: number; 
@@ -58,6 +59,7 @@ export interface CarrinhoProdutoItem extends CarrinhoBaseItem {
 
 export interface CarrinhoServicoItem extends CarrinhoBaseItem {
   servico_id: string;
+  unidade_medida?: string;
   produtos?: CarrinhoProdutoItem[];
 }
 
@@ -114,6 +116,7 @@ export interface PedidoLinha {
   quantidade: number;
   preco_unitario: string;
   subtotal: string;
+  unidade_medida?: string;
 }
 
 export interface PedidoAgendamento {

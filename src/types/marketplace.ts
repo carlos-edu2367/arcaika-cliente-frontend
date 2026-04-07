@@ -22,6 +22,7 @@ export interface MarketplaceServico {
   preco_efetivo?: string;
   em_promocao?: boolean;
   categoria?: string;
+  unidade_medida?: string;
   tipo_servico?: string;
   fotos_count: number;
   motivo?: string;
@@ -45,6 +46,7 @@ export interface ProdutoRelacionado {
   preco: number;
   valor_efetivo?: number;
   unidade: string;
+  unidade_medida?: string;
   por_unidade?: boolean;
   tem_foto?: boolean;
 }

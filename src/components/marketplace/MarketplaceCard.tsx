@@ -121,6 +121,11 @@ export function MarketplaceCard({ item, tipo, imageUrl, isImageLoading, classNam
                 </span>
                 <p className="text-lg font-black text-primary-600">
                   {formatCurrency(precoPromocional)}
+                  {tipo === 'servico' && (item as MarketplaceServico).unidade_medida && (
+                    <span className="text-[10px] text-neutral-400 font-bold uppercase ml-1">
+                      / {(item as MarketplaceServico).unidade_medida}
+                    </span>
+                  )}
                 </p>
               </>
             ) : (
@@ -130,6 +135,11 @@ export function MarketplaceCard({ item, tipo, imageUrl, isImageLoading, classNam
                 </span>
                 <p className="text-lg font-black text-neutral-900">
                   {formatCurrency(preco)}
+                  {tipo === 'servico' && (item as MarketplaceServico).unidade_medida && (
+                    <span className="text-[10px] text-neutral-400 font-bold uppercase ml-1">
+                      / {(item as MarketplaceServico).unidade_medida}
+                    </span>
+                  )}
                 </p>
               </>
             )}
