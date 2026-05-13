@@ -1,10 +1,11 @@
 import { useReducer, useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { CheckCircle2, Eye, EyeOff, MapPin, Search, ArrowRight, ShieldCheck } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { authService } from '@/services/api/auth'
 import { clientesService } from '@/services/api/clientes'
 import { useUIStore } from '@/stores/uiStore'
 import { cn } from '@/lib/utils'
@@ -282,10 +283,37 @@ function cadastroReducer(state: CadastroState, action: CadastroAction): Cadastro
 
 export default function Cadastro() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { register: registerAuth } = useAuth()
   const addToast = useUIStore(s => s.addToast)
   const [state, dispatch] = useReducer(cadastroReducer, { step: 1, step1: null, step2: null })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const parceiroQrSlug = new URLSearchParams(location.search).get('parceiro') || undefined
+  const [parceiroNome, setParceiroNome] = useState<string | null>(null)
+  const [parceiroErro, setParceiroErro] = useState(false)
+
+  useEffect(() => {
+    let ativo = true
+    if (!parceiroQrSlug) {
+      setParceiroNome(null)
+      setParceiroErro(false)
+      return
+    }
+    authService.resolvePartnerQr(parceiroQrSlug)
+      .then((parceiro) => {
+        if (ativo) {
+          setParceiroNome(parceiro.nome)
+          setParceiroErro(false)
+        }
+      })
+      .catch(() => {
+        if (ativo) {
+          setParceiroNome(null)
+          setParceiroErro(true)
+        }
+      })
+    return () => { ativo = false }
+  }, [parceiroQrSlug])
 
   const handleStep3 = async (data: Step3Data) => {
     if (!state.step1 || !state.step2) return
@@ -300,6 +328,9 @@ export default function Cadastro() {
         senha: state.step1.senha,
         cpf: state.step2.cpf.replace(/\D/g, ''),
         telefone: state.step2.telefone.replace(/\D/g, '')
+      }
+      if (parceiroQrSlug && !parceiroErro) {
+        Object.assign(payload, { parceiro_qr_slug: parceiroQrSlug })
       }
 
       await registerAuth(payload)
@@ -364,6 +395,16 @@ export default function Cadastro() {
               {isSucesso ? 'Tudo pronto!' : state.step === 1 ? 'Crie sua conta' : state.step === 2 ? 'Dados pessoais' : 'Endereço de atendimento'}
             </h1>
             {!isSucesso && <p className="text-sm text-neutral-500 mt-2 font-medium">Falta pouco para você começar.</p>}
+            {!isSucesso && parceiroNome && (
+              <p className="mt-3 rounded-xl bg-primary-50 px-3 py-2 text-xs font-semibold text-primary">
+                Cadastro vinculado a {parceiroNome}
+              </p>
+            )}
+            {!isSucesso && parceiroErro && (
+              <p className="mt-3 rounded-xl bg-error/10 px-3 py-2 text-xs font-semibold text-error">
+                Link de parceiro indisponível. O cadastro seguirá sem vínculo.
+              </p>
+            )}
           </div>
 
           {state.step === 1 && <Step1 onNext={(d) => dispatch({ type: 'NEXT_STEP1', payload: d })} />}

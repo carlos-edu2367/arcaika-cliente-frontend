@@ -13,6 +13,14 @@ export interface RegisterInput {
   senha: string
   cpf: string       
   telefone: string  
+  parceiro_qr_slug?: string
+}
+
+export interface ParceiroQrPublicoResponse {
+  parceiro_id: string
+  nome: string
+  qr_slug: string
+  ativo: boolean
 }
 
 export interface AuthResponse { 
@@ -36,6 +44,8 @@ export const authService = {
     api.post<AuthResponse>('/auth/cliente/login', data).then(r => r.data),
   register: (data: RegisterInput) =>
     api.post<AuthResponse>('/auth/cliente', data).then(r => r.data),
+  resolvePartnerQr: (qrSlug: string) =>
+    api.get<ParceiroQrPublicoResponse>(`/parceiros/publico/qr/${qrSlug}`).then(r => r.data),
   refresh: (refresh_token: string) =>
     api.post<AuthResponse>('/auth/refresh', { refresh_token }).then(r => r.data),
 }

@@ -22,7 +22,8 @@ vi.mock('@/services/api/carrinho', () => ({
 }))
 
 vi.mock('@/stores/carrinhoStore', () => ({
-  useCarrinhoStore: () => ({ setItemCount: vi.fn() }),
+  useCarrinhoStore: (selector: (state: { setItemCount: (n: number) => void }) => unknown) =>
+    selector({ setItemCount: vi.fn() }),
 }))
 
 vi.mock('@/stores/uiStore', () => ({
