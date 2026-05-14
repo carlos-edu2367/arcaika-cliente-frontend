@@ -5,6 +5,8 @@ import { generateId } from '@/lib/utils'
 
 const SESSION_KEY = 'arcaika_arky_history'
 const MAX_MSGS = 50
+const MAX_HISTORY_TURNS = 10
+const MAX_HISTORY_MESSAGES = MAX_HISTORY_TURNS * 2
 
 function loadHistory(): MensagemArky[] {
   try {
@@ -30,6 +32,16 @@ function saveHistory(msgs: MensagemArky[]) {
   }
 }
 
+function toBackendHistory(msgs: MensagemArky[]) {
+  return msgs
+    .filter((m) => m.tipo === 'usuario' || m.tipo === 'arky')
+    .slice(-MAX_HISTORY_MESSAGES)
+    .map((m) => ({
+      papel: m.tipo === 'usuario' ? 'usuario' : 'assistente',
+      conteudo: m.conteudo,
+    }))
+}
+
 export function useArky() {
   const [mensagens, setMensagens] = useState<MensagemArky[]>(loadHistory)
   const [isLoading, setIsLoading] = useState(false)
@@ -44,18 +56,20 @@ export function useArky() {
 
   const enviar = useCallback(async (texto: string) => {
     const userMsg: MensagemArky = { id: generateId(), conteudo: texto, tipo: 'usuario', criado_em: new Date().toISOString() }
+    const historico = toBackendHistory(loadHistory())
     setAndPersist((prev) => [...prev, userMsg])
     setIsLoading(true)
     try {
-      // Usa o histórico atual (lido diretamente do sessionStorage para garantir consistência)
-      const historico = loadHistory().map((m) => ({
-        papel: m.tipo === 'usuario' ? 'usuario' : 'assistente', // <-- Valores corrigidos aqui
-        conteudo: m.conteudo,
-      }))
+      // Envia o texto atual separado do historico anterior.
       const res = await assistenteService.chat(texto, historico)
       // Guard: backend pode não retornar mensagem em alguns casos de erro
       if (res.mensagem?.tipo && res.mensagem?.conteudo) {
-        setAndPersist((prev) => [...prev, res.mensagem])
+        const arkyMsg: MensagemArky = {
+          ...res.mensagem,
+          tool_calls: res.mensagem.tool_calls ?? res.tool_calls,
+          modelo_utilizado: res.mensagem.modelo_utilizado ?? res.modelo_utilizado,
+        }
+        setAndPersist((prev) => [...prev, arkyMsg])
       } else if (res.resposta) {
         // Fallback: constrói mensagem a partir do campo resposta
         const arkyMsg: MensagemArky = {
@@ -63,6 +77,8 @@ export function useArky() {
           conteudo: res.resposta,
           tipo: 'arky',
           criado_em: new Date().toISOString(),
+          tool_calls: res.tool_calls,
+          modelo_utilizado: res.modelo_utilizado,
         }
         setAndPersist((prev) => [...prev, arkyMsg])
       }

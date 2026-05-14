@@ -10,6 +10,8 @@ const SUGESTOES = [
   'Quero contratar um serviço',
   'Como pago pelo serviço?',
   'Meus pedidos',
+  'Encontrar serviço',
+  'Abrir chamado',
 ]
 
 import { Spinner } from '@/components/ui/Spinner'
@@ -108,6 +110,11 @@ export function ArkyDrawer() {
                 >
                   {msg.conteudo}
                 </ReactMarkdown>
+                {msg.tool_calls && msg.tool_calls.length > 0 && (
+                  <div className="mt-2 border-t border-neutral-200 pt-1 text-[10px] leading-tight text-neutral-500">
+                    Arky consultou {msg.tool_calls.length} fonte{msg.tool_calls.length > 1 ? 's' : ''} do sistema.
+                  </div>
+                )}
               </div>
             )}
           </div>

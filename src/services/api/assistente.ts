@@ -1,5 +1,14 @@
 import { api } from '@/lib/axios'
-import type { MensagemArky, Servico } from '@/types/domain'
+import type { ArkyToolCall, MensagemArky, Servico } from '@/types/domain'
+
+export interface ChatAssistenteResponse {
+  resposta: string
+  mensagens_processadas?: number
+  modelo_utilizado?: string
+  token_estimado?: number | null
+  tool_calls?: ArkyToolCall[]
+  mensagem?: MensagemArky
+}
 
 // GAP-009: shape real da resposta de recomendações do backend
 export interface RecomendacoesArkyResponse {
@@ -17,7 +26,7 @@ export const assistenteService = {
     contexto_busca?: string,
   ) =>
     api
-      .post<{ resposta: string; mensagem: MensagemArky }>('/assistente/chat', {
+      .post<ChatAssistenteResponse>('/assistente/chat', {
         mensagem,
         historico,
         contexto_categoria,

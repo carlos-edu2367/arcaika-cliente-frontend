@@ -221,7 +221,22 @@ export interface SolicitacaoDetalheResponse {
   }>
 }
 export interface Avaliacao { id: string; nota: number; comentario?: string; autor: { nome: string; foto_url?: string }; criado_em: string }
-export interface MensagemArky { id: string; conteudo: string; tipo: 'usuario' | 'arky'; criado_em: string }
+export interface ArkyToolCall {
+  nome: string;
+  input: Record<string, unknown>;
+  output_resumido: unknown;
+  status: string;
+  duracao_ms: number;
+  erro?: string | null;
+}
+export interface MensagemArky {
+  id: string;
+  conteudo: string;
+  tipo: 'usuario' | 'arky';
+  criado_em: string;
+  tool_calls?: ArkyToolCall[];
+  modelo_utilizado?: string;
+}
 export interface ClienteResponse {
   id: string;
   nome: string;
