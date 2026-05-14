@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useArky } from '@/hooks/useArky'
 import { assistenteService } from '@/services/api/assistente'
+import { useLocationStore } from '@/stores/locationStore'
 
 // Mock do serviço de assistente
 vi.mock('@/services/api/assistente', () => ({
@@ -20,6 +21,11 @@ vi.mock('@/services/api/assistente', () => ({
 describe('useArky', () => {
   beforeEach(() => {
     sessionStorage.clear()
+    useLocationStore.setState({
+      localidade: null,
+      hasChosen: false,
+      isPickerOpen: false,
+    })
     vi.mocked(assistenteService.chat).mockClear()
     vi.mocked(assistenteService.chat).mockResolvedValue({
       resposta: 'Resposta do Arky',
@@ -146,5 +152,32 @@ describe('useArky', () => {
     expect(historico?.[0]).toEqual({ papel: 'usuario', conteudo: 'msg 4' })
     expect(historico?.at(-1)).toEqual({ papel: 'assistente', conteudo: 'msg 23' })
     expect(new Set(historico?.map((m) => m.papel))).toEqual(new Set(['usuario', 'assistente']))
+  })
+
+  it('envia contexto estruturado de localidade escolhida pelo usuario', async () => {
+    useLocationStore.setState({
+      localidade: { cidade: 'Goiânia', estado: 'GO', label: 'Goiânia e Região, GO' },
+      hasChosen: true,
+      isPickerOpen: false,
+    })
+
+    const { result } = renderHook(() => useArky())
+
+    await act(async () => {
+      await result.current.enviar('ve se tem assentamento de azulejo')
+    })
+
+    const contexto = vi.mocked(assistenteService.chat).mock.calls[0][2]
+    expect(contexto).toMatchObject({
+      localizacao: {
+        cidade: 'Goiânia',
+        estado: 'GO',
+        pais: 'BR',
+        permitido: true,
+        origem: 'selecionada',
+      },
+    })
+    expect(contexto?.idioma).toBeTruthy()
+    expect(contexto?.timezone).toBeTruthy()
   })
 })

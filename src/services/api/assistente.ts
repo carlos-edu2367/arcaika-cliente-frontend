@@ -10,6 +10,22 @@ export interface ChatAssistenteResponse {
   mensagem?: MensagemArky
 }
 
+export interface ContextoClienteAssistente {
+  localizacao?: {
+    cidade?: string
+    estado?: string
+    pais?: string
+    latitude?: number
+    longitude?: number
+    permitido: boolean
+    origem?: 'selecionada' | 'gps' | 'perfil' | 'nenhuma'
+  }
+  idioma?: string
+  timezone?: string
+  device_locale?: string
+  rota_atual?: string
+}
+
 // GAP-009: shape real da resposta de recomendações do backend
 export interface RecomendacoesArkyResponse {
   recomendacoes: Servico[]
@@ -22,6 +38,7 @@ export const assistenteService = {
   chat: (
     mensagem: string,
     historico?: { papel: string; conteudo: string }[],
+    contexto_cliente?: ContextoClienteAssistente,
     contexto_categoria?: string,
     contexto_busca?: string,
   ) =>
@@ -29,6 +46,7 @@ export const assistenteService = {
       .post<ChatAssistenteResponse>('/assistente/chat', {
         mensagem,
         historico,
+        contexto_cliente,
         contexto_categoria,
         contexto_busca,
       })

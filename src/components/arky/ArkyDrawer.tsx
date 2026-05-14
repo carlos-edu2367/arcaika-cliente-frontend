@@ -16,10 +16,10 @@ const SUGESTOES = [
 
 import { Spinner } from '@/components/ui/Spinner'
 
-function TypingIndicator() {
+function TypingIndicator({ label }: { label: string }) {
   return (
     <div className="self-start bg-neutral-100 px-3 py-2 rounded-2xl rounded-bl-sm flex items-center shrink-0">
-      <Spinner size="sm" color="muted" label="Arky está digitando..." />
+      <Spinner size="sm" color="muted" label={label} />
     </div>
   )
 }
@@ -53,6 +53,11 @@ export function ArkyDrawer() {
   if (!isArkyOpen) return null
 
   const isEmpty = mensagens.length === 0
+  const ultimaMensagemUsuario = [...mensagens].reverse().find((m) => m.tipo === 'usuario')?.conteudo ?? ''
+  const isBuscaServico = /(?:servi[cç]o|contratar|procuro|preciso|tem|azulejo|revestimento|pintura|encanador|eletricista|pedreiro)/i.test(ultimaMensagemUsuario)
+  const loadingLabel = isBuscaServico
+    ? 'Consultando serviços disponíveis...'
+    : 'Arky está digitando...'
 
   return (
     <div role="dialog" aria-modal="true" aria-label="Chat com Arky" onKeyDown={(e) => e.key === 'Escape' && closeArky()} className="fixed bottom-20 right-4 z-40 md:bottom-6 md:right-24 w-[calc(100vw-2rem)] max-w-sm bg-white rounded-2xl shadow-2xl border border-neutral-100 flex flex-col overflow-hidden h-[520px]">
@@ -120,7 +125,7 @@ export function ArkyDrawer() {
           </div>
         ))}
 
-        {isLoading && <TypingIndicator />}
+        {isLoading && <TypingIndicator label={loadingLabel} />}
 
         <div ref={bottomRef} />
       </div>

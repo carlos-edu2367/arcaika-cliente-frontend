@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react'
 import { assistenteService } from '@/services/api/assistente'
+import type { ContextoClienteAssistente } from '@/services/api/assistente'
 import type { MensagemArky } from '@/types/domain'
 import { generateId } from '@/lib/utils'
+import { useLocationStore } from '@/stores/locationStore'
 
 const SESSION_KEY = 'arcaika_arky_history'
 const MAX_MSGS = 50
@@ -42,6 +44,26 @@ function toBackendHistory(msgs: MensagemArky[]) {
     }))
 }
 
+function buildContextoCliente(): ContextoClienteAssistente {
+  const { localidade, hasChosen } = useLocationStore.getState()
+  const contexto: ContextoClienteAssistente = {
+    idioma: typeof navigator !== 'undefined' ? navigator.language : undefined,
+    device_locale: typeof navigator !== 'undefined' ? navigator.language : undefined,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    rota_atual: typeof window !== 'undefined' ? window.location.pathname : undefined,
+  }
+  if (hasChosen && localidade) {
+    contexto.localizacao = {
+      cidade: localidade.cidade,
+      estado: localidade.estado,
+      pais: 'BR',
+      permitido: true,
+      origem: 'selecionada',
+    }
+  }
+  return contexto
+}
+
 export function useArky() {
   const [mensagens, setMensagens] = useState<MensagemArky[]>(loadHistory)
   const [isLoading, setIsLoading] = useState(false)
@@ -61,7 +83,7 @@ export function useArky() {
     setIsLoading(true)
     try {
       // Envia o texto atual separado do historico anterior.
-      const res = await assistenteService.chat(texto, historico)
+      const res = await assistenteService.chat(texto, historico, buildContextoCliente())
       // Guard: backend pode não retornar mensagem em alguns casos de erro
       if (res.mensagem?.tipo && res.mensagem?.conteudo) {
         const arkyMsg: MensagemArky = {
