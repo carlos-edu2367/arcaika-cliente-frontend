@@ -90,6 +90,7 @@ export function useArky() {
           ...res.mensagem,
           tool_calls: res.mensagem.tool_calls ?? res.tool_calls,
           modelo_utilizado: res.mensagem.modelo_utilizado ?? res.modelo_utilizado,
+          blocos: res.mensagem.blocos ?? res.blocos,
         }
         setAndPersist((prev) => [...prev, arkyMsg])
       } else if (res.resposta) {
@@ -101,6 +102,7 @@ export function useArky() {
           criado_em: new Date().toISOString(),
           tool_calls: res.tool_calls,
           modelo_utilizado: res.modelo_utilizado,
+          blocos: res.blocos,
         }
         setAndPersist((prev) => [...prev, arkyMsg])
       }

@@ -229,6 +229,21 @@ export interface ArkyToolCall {
   duracao_ms: number;
   erro?: string | null;
 }
+export interface ProductCardData {
+  id: string;
+  nome: string;
+  descricao: string;
+  preco: number;
+  preco_label: string;
+  unidade: string;
+  href: string;
+  categoria?: string | null;
+  image_url?: string | null;
+}
+export interface MessageBlock {
+  tipo: 'product_card';
+  dados: ProductCardData;
+}
 export interface MensagemArky {
   id: string;
   conteudo: string;
@@ -236,6 +251,7 @@ export interface MensagemArky {
   criado_em: string;
   tool_calls?: ArkyToolCall[];
   modelo_utilizado?: string;
+  blocos?: MessageBlock[];
 }
 export interface ClienteResponse {
   id: string;

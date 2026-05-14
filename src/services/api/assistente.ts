@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios'
-import type { ArkyToolCall, MensagemArky, Servico } from '@/types/domain'
+import type { ArkyToolCall, MensagemArky, MessageBlock, Servico } from '@/types/domain'
 
 export interface ChatAssistenteResponse {
   resposta: string
@@ -7,6 +7,7 @@ export interface ChatAssistenteResponse {
   modelo_utilizado?: string
   token_estimado?: number | null
   tool_calls?: ArkyToolCall[]
+  blocos?: MessageBlock[]
   mensagem?: MensagemArky
 }
 

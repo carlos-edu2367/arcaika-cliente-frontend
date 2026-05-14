@@ -4,6 +4,24 @@ import ReactMarkdown from 'react-markdown'
 import { useUIStore } from '@/stores/uiStore'
 import { useArky } from '@/hooks/useArky'
 import { cn } from '@/lib/utils'
+import { ProductCard } from './ProductCard'
+import type { MessageBlock } from '@/types/domain'
+
+const MAX_CARDS_PER_MESSAGE = 5
+
+function ArkyProductCards({ blocos }: { blocos: MessageBlock[] }) {
+  const valid = blocos
+    .filter((b) => b?.tipo === 'product_card' && b?.dados)
+    .slice(0, MAX_CARDS_PER_MESSAGE)
+  if (valid.length === 0) return null
+  return (
+    <div className="mt-2 flex flex-col gap-2">
+      {valid.map((bloco) => (
+        <ProductCard key={bloco.dados.id} dados={bloco.dados} />
+      ))}
+    </div>
+  )
+}
 
 const SUGESTOES = [
   'Como funciona o orçamento?',
@@ -115,6 +133,9 @@ export function ArkyDrawer() {
                 >
                   {msg.conteudo}
                 </ReactMarkdown>
+                {msg.blocos && msg.blocos.length > 0 && (
+                  <ArkyProductCards blocos={msg.blocos} />
+                )}
                 {msg.tool_calls && msg.tool_calls.length > 0 && (
                   <div className="mt-2 border-t border-neutral-200 pt-1 text-[10px] leading-tight text-neutral-500">
                     Arky consultou {msg.tool_calls.length} fonte{msg.tool_calls.length > 1 ? 's' : ''} do sistema.
