@@ -38,7 +38,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref,
   ) => {
-    const inputId = id ?? React.useId()
+    const generatedId = React.useId()
+    const inputId = id ?? generatedId
     const errorId = `${inputId}-error`
     const hintId = `${inputId}-hint`
 
@@ -129,7 +130,8 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, hint, error, required, wrapperClassName, className, id, ...props }, ref) => {
-    const textareaId = id ?? React.useId()
+    const generatedId = React.useId()
+    const textareaId = id ?? generatedId
     const errorId = `${textareaId}-error`
 
     return (

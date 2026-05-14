@@ -9,7 +9,7 @@ interface AuthStore {
   token: string | null
   refreshToken: string | null
   isAuthenticated: boolean
-  login: (token: string, refreshToken: string, user: User) => void
+  login: (token: string, refreshToken: string | null | undefined, user: User) => void
   logout: () => void
   updateUser: (data: Partial<User>) => void
 }
@@ -17,10 +17,10 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>()(persist(
   (set) => ({
     user: null, token: null, refreshToken: null, isAuthenticated: false,
-    login: (token, refreshToken, user) => { 
-      localStorage.setItem('arcaika_token', token)
-      localStorage.setItem('arcaika_refresh_token', refreshToken)
-      set({ token, refreshToken, user, isAuthenticated: true }) 
+    login: (token, _refreshToken, user) => {
+      localStorage.removeItem('arcaika_token')
+      localStorage.removeItem('arcaika_refresh_token')
+      set({ token, refreshToken: null, user, isAuthenticated: true })
     },
     logout: () => {
       // API-07: limpa tokens, estado do auth e todo o cache do React Query ao fazer logout
@@ -37,10 +37,14 @@ export const useAuthStore = create<AuthStore>()(persist(
     name: 'arcaika_auth', 
     partialize: (s) => ({ 
       user: s.user, 
-      token: s.token, 
-      refreshToken: s.refreshToken, 
       isAuthenticated: s.isAuthenticated 
-    }) 
+    }),
+    merge: (persisted, current) => ({
+      ...current,
+      ...(persisted as Partial<AuthStore>),
+      token: null,
+      refreshToken: null,
+    }),
   }
 ))
 

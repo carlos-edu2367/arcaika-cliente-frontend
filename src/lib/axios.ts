@@ -5,12 +5,16 @@ export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'https://arcaika-api-197035729546.southamerica-east1.run.app',
   timeout: 8_000,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
 let isRefreshing = false
-let failedQueue: any[] = []
+let failedQueue: Array<{
+  resolve: (token: string | null) => void
+  reject: (error: unknown) => void
+}> = []
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error)
@@ -22,7 +26,7 @@ const processQueue = (error: any, token: string | null = null) => {
 }
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('arcaika_token')
+  const token = useAuthStore.getState().token
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -47,18 +51,11 @@ api.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      const refreshToken = localStorage.getItem('arcaika_refresh_token')
-
-      if (!refreshToken) {
-        useAuthStore.getState().logout()
-        window.dispatchEvent(new CustomEvent('arcaika:unauthorized'))
-        return Promise.reject(error)
-      }
-
       try {
         const { data } = await axios.post(
           `${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/auth/refresh`,
-          { refresh_token: refreshToken }
+          {},
+          { withCredentials: true }
         )
 
         const currentUser = useAuthStore.getState().user
@@ -71,7 +68,7 @@ api.interceptors.response.use(
           data.colaborador ||
           currentUser
 
-        useAuthStore.getState().login(data.access_token, data.refresh_token, incomingUser)
+        useAuthStore.getState().login(data.access_token, null, incomingUser)
 
         processQueue(null, data.access_token)
         originalRequest.headers.Authorization = `Bearer ${data.access_token}`
