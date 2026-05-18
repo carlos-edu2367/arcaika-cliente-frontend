@@ -12,9 +12,9 @@ export function RequireAuth({ children, redirectTo = '/auth/login' }: RequireAut
   const { isAuthenticated, token, login, logout, user } = useAuthStore()
   const location = useLocation()
 
-  // Após reload, isAuthenticated pode ser true mas token é null (não persistido por segurança).
-  // Nesse caso, disparamos um refresh silencioso via cookie HTTP-only antes de renderizar.
-  const needsRefresh = isAuthenticated && !token
+  // Sempre que não há token em memória (reload, logout forçado por erro transiente),
+  // tenta renovar via cookie HTTP-only antes de decidir redirecionar para login.
+  const needsRefresh = !token
   const [refreshState, setRefreshState] = useState<'pending' | 'done' | 'failed'>(
     needsRefresh ? 'pending' : 'done'
   )
