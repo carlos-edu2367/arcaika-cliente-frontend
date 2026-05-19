@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { useAvaliacoesServico } from '@/hooks/useAvaliacoes'
 import { cn } from '@/lib/utils'
 import { ProdutoRelacionado } from '@/types/marketplace'
+import WizardOrcamento from '@/components/marketplace/WizardOrcamento'
 
 import { ReviewItem } from '@/components/shared/ReviewItem'
 
@@ -141,6 +142,7 @@ export default function ServicoDetalhe() {
 
   // Estado Local para Opcionais (Checklist)
   const [selectedProdutos, setSelectedProdutos] = useState<Set<string>>(new Set())
+  const [isWizardOpen, setIsWizardOpen] = useState(false)
 
   const toggleProduto = (prodId: string) => {
     setSelectedProdutos((prev: Set<string>) => {
@@ -214,7 +216,7 @@ export default function ServicoDetalhe() {
       openLoginModal()
       return
     }
-    navigate('/orcamentos/novo')
+    setIsWizardOpen(true)
   }
 
   if (isLoadingServico) {
@@ -554,6 +556,7 @@ export default function ServicoDetalhe() {
         </div>
 
       </Container>
+      <WizardOrcamento isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} />
     </PageWrapper>
   )
 }

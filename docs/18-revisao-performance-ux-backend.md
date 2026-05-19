@@ -503,14 +503,14 @@ logout()
 | **Arquivo** | `src/services/api/` — arquivo ausente |
 | **Categoria** | Missing Feature |
 
-Backend tem router completo em `/midia/*` (upload de fotos para itens, serviços, anexos de cotações). Frontend não tem `midiaService` nem hooks correspondentes. Qualquer tela que precise de upload está quebrada.
+Estado atual: o frontend possui `src/services/api/midia.ts` e hooks em `src/hooks/useMidia.ts`. Anexos do fluxo de orçamento são anexos de solicitação, não de "cotação".
 
 **Correção:** Criar `src/services/api/midia.ts`:
 ```typescript
 export const midiaService = {
   uploadFotoServico: (id: string, file: File) => { ... },
   listarFotosServico: (id: string) => api.get(`/midia/servicos/${id}/fotos`).then(r => r.data),
-  uploadAnexoCotacao: (id: string, file: File) => { ... },
+  uploadAnexoSolicitacao: (id: string, file: File) => { ... }, // POST /midia/solicitacoes/{id}/anexos
   assinarUrls: (referencias: string[]) =>
     api.post('/midia/assinar-urls', { referencias }).then(r => r.data),
 }

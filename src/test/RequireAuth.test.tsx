@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { RequireAuth } from '@/components/auth/RequireAuth'
@@ -12,6 +12,8 @@ vi.mock('@/stores/authStore', () => ({
 vi.mock('axios', () => ({
   default: { post: vi.fn() },
 }))
+
+import axios from 'axios'
 
 function renderWithRouter(ui: React.ReactNode, { initialEntries = ['/protegido'] } = {}) {
   return render(
@@ -28,6 +30,11 @@ function renderWithRouter(ui: React.ReactNode, { initialEntries = ['/protegido']
 }
 
 describe('RequireAuth', () => {
+  beforeEach(() => {
+    vi.mocked(axios.post).mockReset()
+    vi.mocked(axios.post).mockReturnValue(new Promise(() => {}) as never)
+  })
+
   it('renderiza o conteúdo quando o usuário está autenticado com token', () => {
     vi.mocked(useAuthStore).mockReturnValue({
       isAuthenticated: true,

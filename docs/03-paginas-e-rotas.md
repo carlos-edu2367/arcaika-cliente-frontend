@@ -22,8 +22,8 @@ Cada rota está documentada com: path, título da aba, requisito de autenticaç�
       /checkout                   ← CheckoutPage
       /pedidos                    ← PedidosPage
       /pedidos/:id                ← PedidoDetalhePage
-      /orcamentos                 ← CotacoesPage
-      /orcamentos/novo            ← NovaCotacaoPage
+      /conta/orcamentos           ← OrcamentosConta
+      /orcamentos/novo            ← NovoOrcamento
       /orcamentos/:id             ← CotacaoDetalhePage
       /conta/perfil               ← PerfilPage
       /conta/senha                ← SenhaPage
@@ -102,7 +102,7 @@ Cada rota está documentada com: path, título da aba, requisito de autenticaç�
 - `ProviderCard`: mini-card do prestador/organização com avatar, nome, rating, botão "Ver perfil".
 - `ReviewsList`: lista paginada de avaliações com RatingStars + texto + data.
 - `RatingSummary`: média geral + distribuição por estrelas (barras de progresso).
-- `ContratarCTA`: sticky no mobile (fixed bottom bar), fixo na sidebar direita no desktop. Botão "Contratar" (→ carrinho → checkout) e botão "Solicitar orçamento" (→ `/orcamentos/novo`).
+- `ContratarCTA`: sticky no mobile (fixed bottom bar), fixo na sidebar direita no desktop. Botão "Contratar" (→ carrinho → checkout) e botão "Solicitar orçamento" abre o `WizardOrcamento` em modal no desktop/full-screen no mobile.
 
 **UX notes:**
 - Se usuário não está logado e clica "Contratar": abre `ModalLogin` com mensagem "Faça login para contratar este serviço". Após login, retorna para a mesma página e repete a ação.
@@ -254,15 +254,17 @@ Wizard de 5 passos. Ver detalhes em [04 — Wizards](04-wizards.md#wizard-1--con
 
 ---
 
-## `/orcamentos` — Solicitações de Orçamento
+## `/conta/orcamentos` — Solicitações de Orçamento
 
 | Campo | Valor |
 |---|---|
 | **Título da aba** | `Meus orçamentos — Arcaika` |
 | **Auth** | Obrigatório |
-| **Endpoints** | `GET /cotacoes/`, `GET /cotacoes/aceitos` |
+| **Endpoints** | `GET /cotacoes/`, `GET /cotacoes/{id}`, `GET /cotacoes/{id}/orcamentos/{oid}` |
 
-**Tabs:** "Aguardando propostas", "Com propostas", "Aceitos", "Encerrados".
+**Tabs:** "Todas", "Aguardando", "Com propostas", "Aceitas", "Em execução", "Finalizadas".
+
+**CTA:** "Nova solicitação" navega para `/orcamentos/novo`.
 
 **Componentes:**
 - `CotacaoCard`: título da cotação, categoria, data, número de propostas recebidas, StatusBadge.
@@ -275,9 +277,9 @@ Wizard de 5 passos. Ver detalhes em [04 — Wizards](04-wizards.md#wizard-1--con
 |---|---|
 | **Título da aba** | `Solicitar orçamento — Arcaika` |
 | **Auth** | Obrigatório |
-| **Endpoints** | `POST /cotacoes/` |
+| **Endpoints** | `POST /cotacoes/`, `POST /midia/solicitacoes/{solicitacao_id}/anexos` |
 
-Wizard de 5 passos. Ver detalhes em [04 — Wizards](04-wizards.md#wizard-2--solicitar-orçamento).
+Rota dedicada full-screen do `WizardOrcamento`. O mesmo componente ainda pode ser aberto como modal no desktop. Ver detalhes em [04 — Wizards](04-wizards.md#wizard-2--solicitar-orçamento).
 
 ---
 
@@ -290,9 +292,9 @@ Wizard de 5 passos. Ver detalhes em [04 — Wizards](04-wizards.md#wizard-2--sol
 | **Endpoints** | `GET /cotacoes/:id`, `GET /cotacoes/:id/orcamentos/:oid`, `PUT /cotacoes/:id/orcamentos/:oid/aceitar`, `PUT /cotacoes/:id/orcamentos/:oid/rejeitar` |
 
 **Componentes:**
-- `CotacaoInfo`: descrição, categoria, localidade, data desejada, orçamento estimado.
-- `OrcamentoCard`: proposta de um prestador — valor, descrição, prazo, rating do prestador, botões "Aceitar" / "Rejeitar".
-- `ModalAceitarOrcamento`: confirmação antes de aceitar (ação irreversível).
+- `CotacaoInfo`: descrição, categoria, localidade, metragem e previsão de finalização quando disponível.
+- `OrcamentoCard`: componente compartilhado em `src/components/orcamentos/OrcamentoCard.tsx`.
+- `OrcamentoDetalhesModal` e `OrcamentoConfirmacaoModal`: modais compartilhados para detalhes, aceite e recusa de proposta.
 
 ---
 

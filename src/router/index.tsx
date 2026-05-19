@@ -28,6 +28,7 @@ const Checkout = lazy(() => import('@/pages/Checkout'))
 const Pedidos = lazy(() => import('@/pages/Conta/Pedidos'))
 const PedidoDetalhe = lazy(() => import('@/pages/Pedidos/Detalhe'))
 const CotacaoDetalhe = lazy(() => import('@/pages/Orcamentos/Detalhe'))
+const NovoOrcamento = lazy(() => import('@/pages/Orcamentos/Novo'))
 const Perfil = lazy(() => import('@/pages/Conta/Perfil'))
 const Senha = lazy(() => import('@/pages/Conta/Senha'))
 const Enderecos = lazy(() => import('@/pages/Conta/Enderecos'))
@@ -138,6 +139,7 @@ export function AppRouter() {
             <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
             <Route path="/conta/pedidos" element={<RequireAuth><Pedidos /></RequireAuth>} />
             <Route path="/pedidos/:id" element={<RequireAuth><PedidoDetalhe /></RequireAuth>} />
+            <Route path="/orcamentos/novo" element={<RequireAuth><NovoOrcamento /></RequireAuth>} />
             <Route path="/orcamentos/:id" element={<RequireAuth><CotacaoDetalhe /></RequireAuth>} />
             <Route path="/conta" element={<RequireAuth><ContaIndex /></RequireAuth>} />
             <Route path="/conta/perfil" element={<RequireAuth><Perfil /></RequireAuth>} />

@@ -97,16 +97,6 @@ export const midiaService = {
       .then((r) => r.data)
   },
 
-  uploadAnexoCotacao: (cotacaoId: string, file: File) => {
-    const form = new FormData()
-    form.append('file', file)
-    return api
-      .post<{ url: string }>(`/midia/cotacoes/${cotacaoId}/anexos`, form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      .then((r) => r.data)
-  },
-
   // URLs assinadas para acesso seguro a arquivos privados
   assinarUrls: (referencias: FotoReferencia[], expiraEmSegundos: number = 3600) =>
     api

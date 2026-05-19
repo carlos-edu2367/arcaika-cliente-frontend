@@ -286,22 +286,30 @@ function useCancelarPedido() {
 
 ### `useCotacoes`
 
-Arquivo: `src/features/cotacoes/hooks/useCotacoes.ts`
+Arquivo: `src/hooks/useCotacoes.ts`
 
 ```
-function useCotacoes() {
-  return useQuery({
-    queryKey: ['cotacoes'],
-    queryFn: () => api.get('/cotacoes/'),
-    staleTime: 2 * 60 * 1000,
+function useCotacoes(page = 1, pageSize = 20) {
+  const query = useQuery({
+    queryKey: ['cotacoes', 'list', page, pageSize],
+    queryFn: () => cotacoesService.listar({ page, limit: pageSize }),
   })
+
+  return {
+    ...query,
+    data: (query.data?.solicitacoes ?? []).map(mapSolicitacao),
+    hasNext: query.data ? query.data.pagina * query.data.por_pagina < query.data.total : false,
+    total: query.data?.total ?? 0,
+  }
 }
 
 function useCotacao(id: string) {
   return useQuery({
     queryKey: ['cotacoes', id],
-    queryFn: () => api.get(`/cotacoes/${id}`),
-    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const data = await cotacoesService.obter(id)
+      return mapSolicitacaoComOrcamentos(data.solicitacao, data.orcamentos)
+    },
     enabled: !!id,
   })
 }
@@ -319,6 +327,20 @@ function useAceitarOrcamento() {
   })
 }
 ```
+
+Contrato atual de listagem:
+
+```
+GET /cotacoes/?page=1&limit=20
+{
+  solicitacoes: SolicitacaoResponse[],
+  pagina: number,
+  por_pagina: number,
+  total: number
+}
+```
+
+Os mapeadores ficam centralizados em `src/services/api/mappers/cotacoes.ts`. A rota antiga `/midia/cotacoes/{id}/anexos` não é usada; anexos de solicitação usam `/midia/solicitacoes/{id}/anexos`.
 
 ---
 

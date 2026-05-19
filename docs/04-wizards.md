@@ -58,7 +58,7 @@ No mobile, exibe apenas "Passo 2 de 5" em texto (os círculos ficariam muito peq
 
 Para wizards longos (checkout, orçamento), o estado é salvo em `sessionStorage` a cada mudança de step. Se o usuário recarrega a página, o wizard é restaurado no último step preenchido.
 
-Chave de exemplo: `arcaika:wizard:checkout` com os dados serializados. O rascunho expira ao finalizar o wizard ou ao fechar a aba.
+Chaves usadas: `arcaika:wizard:checkout` e `arcaika:wizard:orcamento`, com os dados serializados. O rascunho de orçamento é removido ao concluir ou pular anexos.
 
 ---
 
@@ -172,91 +172,80 @@ agendamentoSchema = z.object({
 ## Wizard 2 — Solicitar Orçamento
 
 **Rota:** `/orcamentos/novo`
-**Componente raiz:** `OrcamentoWizard`
-**Endpoint final:** `POST /cotacoes/`
+**Componente raiz:** `WizardOrcamento`
+**Endpoints:** `POST /cotacoes/` e, depois da criação, `POST /midia/solicitacoes/{solicitacao_id}/anexos`
+
+O componente pode rodar como rota dedicada full-screen (`/orcamentos/novo`) ou como modal opcional em desktop. No mobile, mesmo quando aberto por modal, ocupa a tela inteira. O rascunho fica em `sessionStorage` na chave `arcaika:wizard:orcamento` até sucesso ou pulo da etapa de anexos.
 
 ### Passo 1 — Categoria do serviço
 
-**Componente:** `OrcamentoStep1Categoria`
-**Dados carregados:** `GET /marketplace/categorias`
+**Componente:** parte interna de `WizardOrcamento`
+**Dados carregados:** lista local `CATEGORIAS`
 
 **O que exibe:** grid de cards de categoria com ícone e nome. Seleção única (radio visual).
 
-Subcategorias aparecem ao selecionar a categoria pai (lista expansível ou segundo nível de seleção).
+**Validação:**
+```
+{ tipo_servico: string().min(1) }
+```
+
+---
+
+### Passo 2 — Detalhes do serviço
+
+**Componente:** parte interna de `WizardOrcamento`
+
+**O que exibe:**
+- Campo `titulo` (mínimo 5 caracteres)
+- Campo `descricao` (mínimo 15 caracteres)
+- Campo `metragem` obrigatório apenas para Pintura
 
 **Validação:**
 ```
-{ categoria_id: z.string().uuid('Selecione uma categoria') }
+titulo.length >= 5
+descricao.length >= 15
+tipo_servico !== 'Pintura' || metragem > 0
 ```
 
 ---
 
-### Passo 2 — Descrição detalhada
+### Passo 3 — Endereço
 
-**Componente:** `OrcamentoStep2Descricao`
+**Componente:** parte interna de `WizardOrcamento`
 
 **O que exibe:**
-- `<textarea>` "Descreva o serviço que você precisa" (mínimo 30, máximo 2000 caracteres)
-- Contador de caracteres (ex: "150/2000")
-- Upload de fotos/anexos: drag-and-drop + clique. Aceita JPG, PNG, PDF. Máximo 5 arquivos, 10MB cada.
-- Preview dos arquivos enviados com botão de remoção.
+- Campo de CEP com consulta ViaCEP
+- Rua, número, complemento, bairro
+- Cidade e UF preenchidos pelo CEP
 
 **Validação:**
 ```
-descricaoSchema = z.object({
-  descricao: z.string().min(30, 'Descreva com pelo menos 30 caracteres').max(2000),
-  anexos: z.array(z.instanceof(File)).max(5, 'Máximo 5 arquivos').optional(),
-})
-```
-
-**UX:** os arquivos são enviados no `POST /cotacoes/` como `multipart/form-data`. Enquanto o upload ocorre, barra de progresso por arquivo.
-
----
-
-### Passo 3 — Localidade e data desejada
-
-**Componente:** `OrcamentoStep3LocalidadeData`
-
-**O que exibe:**
-- Campo de CEP (autopreenchimento de cidade/estado)
-- Campo de cidade + estado (editável)
-- "Aceito atendimento remoto?" (checkbox)
-- Seleção de data: calendário ou opção "Flexível" (sem data definida)
-
-**Validação:**
-```
-localidadeSchema = z.object({
-  cidade: z.string().min(2),
-  estado: z.string().length(2),
-  aceita_remoto: z.boolean(),
-  data_desejada: z.date().optional().nullable(),
-})
+cep.length === 9 && rua && numero && cidade && estado
 ```
 
 ---
 
-### Passo 4 — Orçamento estimado (range)
+### Passo 4 — Revisão e envio
 
-**Componente:** `OrcamentoStep4Orcamento`
+**Componente:** parte interna de `WizardOrcamento`
 
 **O que exibe:**
-- Slider de faixa de preço: min e max (ex: R$200 — R$800)
-- Opção "Não sei / Quero as melhores ofertas" (desmarca o slider)
-- Texto: "Prestadores com orçamentos nessa faixa serão priorizados"
-
-**Validação:** opcional. Se "Não sei" marcado, `orcamento_min` e `orcamento_max` são `null`.
+- Resumo de título, tipo de serviço, metragem, descrição e endereço.
+- Botão "Confirmar e Enviar".
 
 ---
 
-### Passo 5 — Revisão e envio
+### Etapa pós-criação — Anexos
 
-**Componente:** `OrcamentoStep5Revisao`
+**Componente:** parte interna de `WizardOrcamento`
 
 **O que exibe:**
-- Resumo de todas as informações: categoria, descrição (truncada com "ver mais"), localidade, data, faixa de valor, anexos (lista de nomes).
-- Botão "Editar" em cada seção (navega direto para o passo correspondente via `goToStep(n)`).
+- Upload opcional após a solicitação já existir.
+- Aceita JPG, PNG, WEBP e PDF.
+- Máximo de 5 arquivos válidos, 10MB por arquivo.
+- Feedback por arquivo com tamanho ou erro de tipo/tamanho/quantidade.
 
-**UX:** o botão final é "Enviar solicitação" (não "Próximo"). Após envio: estado de loading no botão.
+**UX:** arquivos válidos são enviados para `/midia/solicitacoes/{solicitacao_id}/anexos`. Arquivos inválidos permanecem na lista com erro e não bloqueiam a remoção.
 
 ---
 
@@ -265,11 +254,9 @@ localidadeSchema = z.object({
 **Componente:** `OrcamentoConfirmacao`
 
 **O que exibe:**
-- Ícone de envelope enviado (laranja)
-- "Solicitação enviada! Prestadores irão analisar e enviar propostas."
-- "Você receberá uma notificação quando houver propostas."
-- Botão "Ver minha solicitação" → `/orcamentos/:id`
-- Botão "Solicitar outro orçamento" (reinicia o wizard)
+- "Pedido Enviado!"
+- Mensagem informando que a solicitação foi disponibilizada para a rede de profissionais.
+- Botão "Acompanhar propostas" → `/conta/orcamentos`
 
 ---
 

@@ -160,29 +160,51 @@ export interface Pedido {
   avaliado?: boolean;
   avaliacoes_feitas?: string[];
 }
-export type CotacaoStatus = 'ABERTA' | 'COM_PROPOSTAS' | 'ACEITA' | 'CANCELADA' | 'EXPIRADA'
-export type OrcamentoStatus = 'PENDENTE' | 'ACEITO' | 'REJEITADO' | 'aguardando_aprovacao'
+export type CotacaoStatus =
+  | 'aguardando_orcamento'
+  | 'orcamento_recebido'
+  | 'orcamento_aceito'
+  | 'em_contato'
+  | 'em_execucao'
+  | 'finalizado'
+  | 'cancelado'
+
+export type OrcamentoStatus =
+  | 'aguardando_aprovacao'
+  | 'aprovado'
+  | 'rejeitado'
+  | 'cancelado'
 
 export interface Orcamento {
   id: string
   cotacao_id: string
   organizacao: Organizacao
   valor: number
+  valor_com_desconto?: number | string | null
   descricao: string
   prazo_dias?: number
+  validade_dias?: number
   status: OrcamentoStatus
   criado_em: string
   // Novos campos do backend
   provedor_nome?: string
   organizacao_id?: string
+  prestador_id?: string | null
   titulo?: string
+  numero_contrato?: string | null
+  anexos_count?: number
+  detalhamento?: Record<string, Record<string, number | string>> | null
+  anexos?: any[]
 }
 
 export interface Cotacao {
   id: string
+  titulo?: string | null
   descricao: string
   categoria: Categoria
   localidade: string
+  endereco_completo?: string | null
+  metragem?: number | null
   data_desejada?: string
   orcamento_minimo?: number
   orcamento_maximo?: number
@@ -190,36 +212,60 @@ export interface Cotacao {
   criado_em: string
   orcamentos?: Orcamento[]
   anexos?: string[]
+  numero_contrato?: string | null
+  data_finalizacao_estimada?: string | null
 }
 
-export interface SolicitacaoDetalheResponse {
-  solicitacao: {
-    id: string
-    cliente_id: string
-    descricao: string
-    tipo_servico: string
-    cidade: string
-    estado: string
-    endereco_completo: string
-    metragem?: number | null
-    ativa: boolean
-    qtd_orcamentos?: number | null
-    criada_em: string
-  }
-  orcamentos: Array<{
-    id: string
-    solicitacao_id?: string | null
-    organizacao_id: string
-    prestador_id?: string | null
-    provedor_nome: string
-    titulo?: string | null
-    descricao?: string | null
-    valor: string | number
-    prazo_dias?: number | null
-    status: string
-    criado_em: string
-  }>
+export interface SolicitacaoResponse {
+  id: string
+  cliente_id: string
+  titulo?: string | null
+  descricao: string
+  tipo_servico: string
+  cidade: string
+  estado: string
+  endereco_completo?: string | null
+  metragem?: number | null
+  numero_contrato?: string | null
+  ativa: boolean
+  qtd_orcamentos?: number | null
+  criada_em?: string | null
+  status?: CotacaoStatus | string | null
+  data_finalizacao_estimada?: string | null
 }
+
+export interface ListaSolicitacoesClienteResponse {
+  solicitacoes: SolicitacaoResponse[]
+  total: number
+  pagina: number
+  por_pagina: number
+}
+
+export interface OrcamentoDetalheResponse {
+  id: string
+  solicitacao_id?: string | null
+  organizacao_id?: string | null
+  prestador_id?: string | null
+  provedor_nome?: string | null
+  titulo?: string | null
+  descricao?: string | null
+  valor: string | number
+  valor_com_desconto?: string | number | null
+  prazo_dias?: number | null
+  validade_dias?: number | null
+  numero_contrato?: string | null
+  status: OrcamentoStatus | string
+  criado_em?: string | null
+  detalhamento?: Record<string, Record<string, number | string>> | null
+  anexos_count?: number
+}
+
+export interface SolicitacaoComOrcamentosResponse {
+  solicitacao: SolicitacaoResponse
+  orcamentos: OrcamentoDetalheResponse[]
+}
+
+export type SolicitacaoDetalheResponse = SolicitacaoComOrcamentosResponse
 export interface Avaliacao { id: string; nota: number; comentario?: string; autor: { nome: string; foto_url?: string }; criado_em: string }
 export interface ArkyToolCall {
   nome: string;

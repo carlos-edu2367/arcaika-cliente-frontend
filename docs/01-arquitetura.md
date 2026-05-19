@@ -72,7 +72,7 @@ src/
 │   │   └── types.ts         # Pedido, StatusPedido
 │   │
 │   ├── cotacoes/            # Solicitações de orçamento e propostas
-│   │   ├── components/      # CotacaoCard, OrcamentoCard, OrcamentoWizard
+│   │   ├── components/      # CotacaoCard, OrcamentoCard, WizardOrcamento
 │   │   ├── hooks/           # useCotacoes, useCotacao, useOrcamentos
 │   │   └── types.ts         # Cotacao, Orcamento, StatusCotacao
 │   │

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
@@ -33,6 +33,12 @@ const CATEGORIAS = [
   { id: 'Outros', label: 'Outros Serviços', icon: LayoutGrid },
 ];
 
+const WIZARD_STORAGE_KEY = 'arcaika:wizard:orcamento';
+const MAX_ANEXOS = 5;
+const MAX_ANEXO_SIZE_BYTES = 10 * 1024 * 1024;
+const ALLOWED_ANEXO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+const ALLOWED_ANEXO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
+
 interface WizardData {
   titulo: string;
   tipo_servico: string;
@@ -60,12 +66,43 @@ const initialData: WizardData = {
   estado: '',
 };
 
-export default function WizardOrcamento({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+type WizardStep = 1 | 2 | 3 | 4 | 'anexos' | 'sucesso';
+type SelectedFileItem = { file: File; error?: string };
+
+function isWizardStep(value: unknown): value is WizardStep {
+  return value === 1 || value === 2 || value === 3 || value === 4 || value === 'anexos' || value === 'sucesso';
+}
+
+function isAllowedFileType(file: File) {
+  const lowerName = file.name.toLowerCase();
+  return ALLOWED_ANEXO_TYPES.includes(file.type) || ALLOWED_ANEXO_EXTENSIONS.some((ext) => lowerName.endsWith(ext));
+}
+
+function formatFileSize(bytes: number) {
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function validateAnexo(file: File, currentCount: number): string | undefined {
+  if (currentCount >= MAX_ANEXOS) return `Limite de ${MAX_ANEXOS} arquivos atingido.`;
+  if (!isAllowedFileType(file)) return 'Tipo não permitido. Use JPG, PNG, WEBP ou PDF.';
+  if (file.size > MAX_ANEXO_SIZE_BYTES) return `Arquivo maior que ${formatFileSize(MAX_ANEXO_SIZE_BYTES)}.`;
+  return undefined;
+}
+
+export default function WizardOrcamento({
+  isOpen,
+  onClose,
+  fullscreen = false,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  fullscreen?: boolean;
+}) {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 'anexos' | 'sucesso'>(1);
   const [data, setData] = useState<WizardData>(initialData);
   const [loadingCep, setLoadingCep] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<SelectedFileItem[]>([]);
 
   const { isAuthenticated } = useAuthStore();
   const { openLoginModal, addToast } = useUIStore();
@@ -73,14 +110,44 @@ export default function WizardOrcamento({ isOpen, onClose }: { isOpen: boolean; 
   const { mutateAsync: uploadAnexos, isPending: isUploading } = useUploadAnexoSolicitacao();
   const navigate = useNavigate();
 
+  const validFiles = useMemo(() => selectedFiles.filter((item) => !item.error).map((item) => item.file), [selectedFiles]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    try {
+      const raw = sessionStorage.getItem(WIZARD_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as { step?: unknown; data?: Partial<WizardData>; createdId?: string | null };
+      if (parsed.data) setData({ ...initialData, ...parsed.data });
+      if (isWizardStep(parsed.step) && parsed.step !== 'sucesso') setStep(parsed.step);
+      if (parsed.createdId) setCreatedId(parsed.createdId);
+    } catch {
+      sessionStorage.removeItem(WIZARD_STORAGE_KEY);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || step === 'sucesso') return;
+
+    sessionStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify({ step, data, createdId }));
+  }, [createdId, data, isOpen, step]);
+
   if (!isOpen) return null;
 
+  const clearDraft = () => {
+    sessionStorage.removeItem(WIZARD_STORAGE_KEY);
+  };
+
   const handleClose = () => {
-    // Reset estado ao fechar
-    setTimeout(() => {
+    if (step === 'sucesso') {
+      clearDraft();
       setStep(1);
       setData(initialData);
-    }, 300);
+      setCreatedId(null);
+      setSelectedFiles([]);
+    }
     onClose();
   };
 
@@ -135,10 +202,11 @@ export default function WizardOrcamento({ isOpen, onClose }: { isOpen: boolean; 
   };
 
   const handleFileUpload = async () => {
-    if (!createdId || selectedFiles.length === 0) return;
+    if (!createdId || validFiles.length === 0) return;
     
     try {
-      await uploadAnexos({ solicitacaoId: createdId, files: selectedFiles });
+      await uploadAnexos({ solicitacaoId: createdId, files: validFiles });
+      clearDraft();
       setStep('sucesso');
     } catch (err) {
       // Toast já exibido no hook
@@ -147,12 +215,21 @@ export default function WizardOrcamento({ isOpen, onClose }: { isOpen: boolean; 
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setSelectedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+      const incoming = Array.from(e.target.files);
+      setSelectedFiles((prev) => {
+        const next = [...prev];
+        incoming.forEach((file) => {
+          const error = validateAnexo(file, next.filter((item) => !item.error).length);
+          next.push({ file, error });
+        });
+        return next;
+      });
+      e.target.value = '';
     }
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+      setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   // Regras de bloqueio/avanço
@@ -164,9 +241,17 @@ export default function WizardOrcamento({ isOpen, onClose }: { isOpen: boolean; 
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-neutral-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className={cn(
+      "fixed inset-0 z-[100] flex items-center justify-center bg-neutral-900/60 backdrop-blur-sm animate-in fade-in duration-200",
+      fullscreen ? "p-0" : "p-0 sm:p-6"
+    )}>
       <div 
-        className="bg-white w-full max-w-2xl h-[95vh] sm:h-[85vh] max-h-[800px] rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300"
+        className={cn(
+          "bg-white w-full shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300",
+          fullscreen
+            ? "h-dvh max-w-none rounded-none"
+            : "h-dvh sm:h-[85vh] sm:max-h-[800px] sm:max-w-2xl sm:rounded-[24px]"
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         
@@ -380,21 +465,29 @@ export default function WizardOrcamento({ isOpen, onClose }: { isOpen: boolean; 
                     </div>
                     <div className="text-center">
                       <p className="font-bold text-neutral-700">Clique para selecionar arquivos</p>
-                      <p className="text-xs text-neutral-400 mt-1 uppercase font-black tracking-widest text-[10px]">Imagens ou PDFs</p>
-                    </div>
-                    <input type="file" multiple className="hidden" onChange={handleFileSelect} accept="image/*,application/pdf" />
+                    <p className="text-xs text-neutral-400 mt-1 uppercase font-black tracking-widest text-[10px]">JPG, PNG, WEBP ou PDF até 10MB</p>
+                  </div>
+                    <input type="file" multiple className="hidden" onChange={handleFileSelect} accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" />
                   </div>
                 </label>
 
                 {selectedFiles.length > 0 && (
                   <div className="space-y-2 max-h-[160px] overflow-y-auto px-1 custom-scrollbar">
-                    {selectedFiles.map((file, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-neutral-50 p-3 rounded-xl border border-neutral-100 animate-in slide-in-from-left-2 duration-200">
+                    {selectedFiles.map(({ file, error }, idx) => (
+                      <div key={`${file.name}-${idx}`} className={cn(
+                        "flex items-center justify-between p-3 rounded-xl border animate-in slide-in-from-left-2 duration-200",
+                        error ? "bg-error-light/40 border-error/20" : "bg-neutral-50 border-neutral-100"
+                      )}>
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm shrink-0">
                             <FilePlus size={16} />
                           </div>
-                          <p className="text-sm font-bold text-neutral-700 truncate pr-4">{file.name}</p>
+                          <div className="min-w-0 pr-4">
+                            <p className="text-sm font-bold text-neutral-700 truncate">{file.name}</p>
+                            <p className={cn("text-xs", error ? "text-error" : "text-neutral-400")}>
+                              {error || formatFileSize(file.size)}
+                            </p>
+                          </div>
                         </div>
                         <button onClick={() => removeFile(idx)} className="text-neutral-300 hover:text-error h-8 w-8 flex items-center justify-center rounded-lg hover:bg-error-light transition-colors">
                           <Trash2 size={16} />
@@ -407,14 +500,14 @@ export default function WizardOrcamento({ isOpen, onClose }: { isOpen: boolean; 
                 <div className="flex flex-col gap-3 pt-4">
                   <button 
                     onClick={handleFileUpload}
-                    disabled={selectedFiles.length === 0 || isUploading}
+                    disabled={validFiles.length === 0 || isUploading}
                     className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-black h-16 rounded-[24px] shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3"
                   >
                     {isUploading ? <Spinner size="sm" color="white" /> : <UploadCloud size={20} />}
-                    Enviar {selectedFiles.length} {selectedFiles.length === 1 ? 'arquivo' : 'arquivos'}
+                    Enviar {validFiles.length} {validFiles.length === 1 ? 'arquivo' : 'arquivos'}
                   </button>
                   <button 
-                    onClick={() => setStep('sucesso')}
+                    onClick={() => { clearDraft(); setStep('sucesso'); }}
                     disabled={isUploading}
                     className="w-full text-neutral-400 font-bold hover:text-neutral-600 transition-colors py-2 text-sm"
                   >
