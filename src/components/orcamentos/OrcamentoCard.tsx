@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle, Clock, Download, FileText, Layers3, XCircle } from 'lucide-react'
+import { CheckCircle, Clock, Download, ExternalLink, FileText, Layers3, XCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui/Spinner'
 import { useOrcamentoDetalhes } from '@/hooks/useCotacoes'
 import { cn, formatCurrency } from '@/lib/utils'
@@ -330,6 +330,18 @@ export function OrcamentoCard({
           </button>
         </div>
       )}
+
+      {orc.status === 'aprovado' && orc.url_acompanhamento ? (
+        <a
+          href={orc.url_acompanhamento}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary-light py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+        >
+          <ExternalLink size={16} />
+          Acompanhar obra
+        </a>
+      ) : null}
 
       <div className="flex gap-3 pt-2">
         <button

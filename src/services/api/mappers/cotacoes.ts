@@ -68,6 +68,7 @@ export function mapOrcamento(orc: OrcamentoDetalheResponse, cotacaoId: string): 
     numero_contrato: orc.numero_contrato,
     anexos_count: orc.anexos_count,
     detalhamento: orc.detalhamento,
+    url_acompanhamento: orc.url_acompanhamento,
     organizacao: {
       id: orc.organizacao_id || orc.prestador_id || '',
       nome: orc.provedor_nome || 'Prestador',

@@ -195,6 +195,7 @@ export interface Orcamento {
   anexos_count?: number
   detalhamento?: Record<string, Record<string, number | string>> | null
   anexos?: any[]
+  url_acompanhamento?: string | null
 }
 
 export interface Cotacao {
@@ -258,6 +259,7 @@ export interface OrcamentoDetalheResponse {
   criado_em?: string | null
   detalhamento?: Record<string, Record<string, number | string>> | null
   anexos_count?: number
+  url_acompanhamento?: string | null
 }
 
 export interface SolicitacaoComOrcamentosResponse {
