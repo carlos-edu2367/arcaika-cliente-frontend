@@ -181,7 +181,7 @@ function Step2Endereco({
   const qc = useQueryClient()
   const addToast = useUIStore((s) => s.addToast)
 
-  const [novoEnd, setNovoEnd] = useState({ rua: '', complemento: '', bairro: '', cidade: '', estado: '', cep: '', ponto_de_referencia: '' })
+  const [novoEnd, setNovoEnd] = useState({ rua: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '', cep: '', ponto_de_referencia: '' })
 
   const criarEndereco = useMutation({
     mutationFn: () => clientesService.criarEndereco({ ...novoEnd, ativo: false }),
@@ -264,9 +264,13 @@ function Step2Endereco({
                 className="w-full mt-1.5 bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-2 sm:col-span-1">
               <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest pl-1">Rua / Logradouro</label>
               <input value={novoEnd.rua} onChange={(e) => setNovoEnd((p) => ({ ...p, rua: e.target.value }))} className="w-full mt-1.5 bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest pl-1">Número</label>
+              <input value={novoEnd.numero} onChange={(e) => setNovoEnd((p) => ({ ...p, numero: e.target.value }))} placeholder="123" className="w-full mt-1.5 bg-white border border-neutral-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
             </div>
             <div className="col-span-2">
               <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest pl-1">Complemento</label>

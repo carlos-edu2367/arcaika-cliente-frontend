@@ -8,7 +8,7 @@ export function PageWrapper({ noPadding, className, children, ...props }: PageWr
   return (
     <main
       className={cn(
-        'min-h-[calc(100vh-3.5rem)] pb-16 md:pb-0',
+        'min-h-[calc(100vh-3.5rem)] pb-20 md:pb-0',
         !noPadding && 'py-6',
         className,
       )}

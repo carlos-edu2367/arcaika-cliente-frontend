@@ -26,6 +26,8 @@ export const useAuthStore = create<AuthStore>()(persist(
       // API-07: limpa tokens, estado do auth e todo o cache do React Query ao fazer logout
       localStorage.removeItem('arcaika_token')
       localStorage.removeItem('arcaika_refresh_token')
+      // limpa histórico do Arky para evitar vazamento de dados entre usuários
+      sessionStorage.removeItem('arcaika_arky_history')
       set({ token: null, refreshToken: null, user: null, isAuthenticated: false })
       // API-07: reseta contador do carrinho para evitar vazamento de dados entre usuários
       useCarrinhoStore.getState().reset()

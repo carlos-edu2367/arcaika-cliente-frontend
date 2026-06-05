@@ -53,7 +53,7 @@ api.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          `${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/auth/refresh`,
+          `${import.meta.env.VITE_API_URL ?? 'https://arcaika-api-197035729546.southamerica-east1.run.app'}/auth/refresh`,
           {},
           { withCredentials: true }
         )

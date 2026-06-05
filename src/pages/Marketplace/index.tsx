@@ -31,6 +31,18 @@ const normalizeTitle = (str?: string) => {
 // Componentes Secundários
 // ---------------------------------------------------------------------------
 
+function buildPageRange(current: number, total: number): (number | 'ellipsis')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages: (number | 'ellipsis')[] = [1]
+  if (current > 3) pages.push('ellipsis')
+  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) {
+    pages.push(p)
+  }
+  if (current < total - 2) pages.push('ellipsis')
+  pages.push(total)
+  return pages
+}
+
 function CardSkeleton() {
   return (
     <div className="bg-white rounded-2xl border border-neutral-100 overflow-hidden animate-pulse shadow-sm">
@@ -44,22 +56,6 @@ function CardSkeleton() {
           <div className="h-8 bg-neutral-100 rounded-xl w-1/4" />
         </div>
       </div>
-    </div>
-  )
-}
-
-function SectionHeader({ title, icon: Icon, count }: { title: string, icon: any, count?: number }) {
-  return (
-    <div className="flex items-center gap-2 mb-6 border-b border-neutral-100 pb-2">
-      <div className="p-2 bg-primary-light text-primary rounded-xl">
-        <Icon size={20} strokeWidth={2.5} />
-      </div>
-      <h2 className="text-xl font-bold text-neutral-800 font-poppins">{title}</h2>
-      {count !== undefined && (
-        <span className="bg-neutral-100 text-neutral-500 text-xs font-semibold px-2.5 py-1 rounded-full ml-2">
-          {count}
-        </span>
-      )}
     </div>
   )
 }
@@ -311,25 +307,24 @@ export default function Marketplace() {
                   </button>
                   
                   <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }).map((_, i) => {
-                      const p = i + 1
-                      // Logica simples de exibição (opcional: elipses se houver muitas páginas)
-                      if (totalPages > 7 && Math.abs(p - page) > 2 && p !== 1 && p !== totalPages) return null
-                      return (
+                    {buildPageRange(page, totalPages).map((p, idx) =>
+                      p === 'ellipsis' ? (
+                        <span key={`e-${idx}`} className="w-8 text-center text-neutral-400 text-sm select-none">…</span>
+                      ) : (
                         <button
                           key={p}
                           onClick={() => setPage(p)}
                           className={cn(
                             'w-10 h-10 rounded-xl text-sm font-bold transition-all',
-                            p === page 
-                              ? 'bg-primary text-white shadow-md' 
+                            p === page
+                              ? 'bg-primary text-white shadow-md'
                               : 'text-neutral-500 hover:bg-neutral-100'
                           )}
                         >
                           {p}
                         </button>
                       )
-                    })}
+                    )}
                   </div>
 
                   <button

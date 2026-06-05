@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Send, Bot } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
+import DOMPurify from 'dompurify'
 import { useUIStore } from '@/stores/uiStore'
 import { useArky } from '@/hooks/useArky'
 import { cn } from '@/lib/utils'
+import { Spinner } from '@/components/ui/Spinner'
 import { ProductCard } from './ProductCard'
 import type { MessageBlock } from '@/types/domain'
 
@@ -31,8 +33,6 @@ const SUGESTOES = [
   'Encontrar serviço',
   'Abrir chamado',
 ]
-
-import { Spinner } from '@/components/ui/Spinner'
 
 function TypingIndicator({ label }: { label: string }) {
   return (
@@ -70,6 +70,9 @@ export function ArkyDrawer() {
 
   if (!isArkyOpen) return null
 
+  const sanitize = (html: string) =>
+    typeof window !== 'undefined' ? DOMPurify.sanitize(html) : html
+
   const isEmpty = mensagens.length === 0
   const ultimaMensagemUsuario = [...mensagens].reverse().find((m) => m.tipo === 'usuario')?.conteudo ?? ''
   const isBuscaServico = /(?:servi[cç]o|contratar|procuro|preciso|tem|azulejo|revestimento|pintura|encanador|eletricista|pedreiro)/i.test(ultimaMensagemUsuario)
@@ -78,7 +81,14 @@ export function ArkyDrawer() {
     : 'Arky está digitando...'
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Chat com Arky" onKeyDown={(e) => e.key === 'Escape' && closeArky()} className="fixed bottom-20 right-4 z-40 md:bottom-6 md:right-24 w-[calc(100vw-2rem)] max-w-sm bg-white rounded-2xl shadow-2xl border border-neutral-100 flex flex-col overflow-hidden h-[520px]">
+    <>
+      {/* backdrop — fecha ao clicar fora */}
+      <div
+        className="fixed inset-0 z-30 md:hidden"
+        aria-hidden="true"
+        onClick={closeArky}
+      />
+    <div role="dialog" aria-modal="true" aria-label="Chat com Arky" onKeyDown={(e) => e.key === 'Escape' && closeArky()} className="fixed bottom-20 right-4 z-40 md:bottom-6 md:right-24 w-[calc(100vw-2rem)] max-w-sm bg-white rounded-2xl shadow-2xl border border-neutral-100 flex flex-col overflow-hidden" style={{ height: 'min(520px, calc(100dvh - 7rem))' }}>
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 bg-primary text-white flex-shrink-0">
         <Bot size={20} />
@@ -129,9 +139,10 @@ export function ArkyDrawer() {
                     ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-2 space-y-1 last:mb-0" {...props} />,
                     li: ({ node, ...props }) => <li className="" {...props} />,
                     strong: ({ node, ...props }) => <strong className="font-semibold text-neutral-900" {...props} />,
+                    a: ({ node, ...props }) => <a className="text-primary underline" target="_blank" rel="noopener noreferrer" {...props} />,
                   }}
                 >
-                  {msg.conteudo}
+                  {sanitize(msg.conteudo)}
                 </ReactMarkdown>
                 {msg.blocos && msg.blocos.length > 0 && (
                   <ArkyProductCards blocos={msg.blocos} />
@@ -184,5 +195,6 @@ export function ArkyDrawer() {
         </button>
       </form>
     </div>
+    </>
   )
 }

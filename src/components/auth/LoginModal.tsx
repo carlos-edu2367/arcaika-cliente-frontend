@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { X } from 'lucide-react'
+import { X, Eye, EyeOff } from 'lucide-react'
 import { useUIStore } from '@/stores/uiStore'
 import { useAuth } from '@/hooks/useAuth'
 import { Spinner } from '@/components/ui/Spinner'
@@ -22,8 +22,9 @@ export function LoginModal() {
   const navigate = useNavigate()
   
   const [loginError, setLoginError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({ 
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema) 
   })
 
@@ -54,13 +55,18 @@ export function LoginModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-sm">
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 animate-in zoom-in-95 duration-200">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="login-modal-title"
+        className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 animate-in zoom-in-95 duration-200"
+      >
         <button onClick={closeLoginModal} className="absolute right-4 top-4 p-2 text-neutral-400 hover:bg-neutral-100 rounded-full">
           <X size={20} />
         </button>
 
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-neutral-900 font-poppins">Acesse sua conta</h2>
+          <h2 id="login-modal-title" className="text-2xl font-bold text-neutral-900 font-poppins">Acesse sua conta</h2>
           <p className="text-sm text-neutral-500 mt-1">Para continuar com seu pedido</p>
         </div>
 
@@ -89,12 +95,22 @@ export function LoginModal() {
                 Esqueci minha senha
               </button>
             </div>
-            <input
-              type="password"
-              {...register('senha')}
-              className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-400 outline-none transition-all"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                {...register('senha')}
+                className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-400 outline-none transition-all pr-11"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+                aria-label={showPassword ? 'Esconder senha' : 'Mostrar senha'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
             {errors.senha && <p className="text-[10px] text-error mt-1 ml-1 font-medium">{errors.senha.message}</p>}
           </div>
 

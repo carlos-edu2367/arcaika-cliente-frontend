@@ -155,7 +155,7 @@ export default function PedidoDetalhe() {
   const StatusIcon = config.Icon
   const currentIdx = ORDER.indexOf(statusStr.toUpperCase())
   
-  const podeConselar = ['PENDENTE', 'CONFIRMADO', 'aguardando pagamento'].includes(statusStr)
+  const podeCancelar = ['PENDENTE', 'CONFIRMADO', 'aguardando pagamento'].includes(statusStr)
   const servicoId = (pedido as any).linhas?.[0]?.referencia_id ?? ''
   const jaAvaliadoLocal = localStorage.getItem(`arcaika_avaliado_${id}`) === '1'
   const podeAvaliar = statusStr.toUpperCase() === 'CONCLUIDO' && !pedido.avaliado && !jaAvaliadoLocal
@@ -243,7 +243,7 @@ export default function PedidoDetalhe() {
               {podeAvaliar && (
                 <button onClick={() => setShowAvaliacao(true)} className="w-full bg-primary text-white font-bold py-3 rounded-xl shadow-lg">Avaliar serviço</button>
               )}
-              {podeConselar && (
+              {podeCancelar && (
                 <button onClick={() => setShowConfirmCancel(true)} className="w-full border border-neutral-200 text-neutral-400 py-3 rounded-xl hover:bg-neutral-50">Cancelar pedido</button>
               )}
             </div>
