@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, Star, Shield, MapPin, ArrowRight, TrendingUp, ClipboardList, Clock, Sparkles } from 'lucide-react'
+import { Search, Star, Shield, MapPin, ArrowRight, TrendingUp, ClipboardList, Clock, Sparkles, Zap, Droplets, Paintbrush, Hammer, Leaf, Wind, Truck, Bug, Flame, Key, Wrench, Waves, Monitor, type LucideIcon } from 'lucide-react'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Container } from '@/components/layout/Container'
 import { MarketplaceCard } from '@/components/marketplace/MarketplaceCard'
@@ -25,6 +25,53 @@ const normalizeTitle = (str?: string) => {
     return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
   }).join(' ');
 };
+
+// ---------------------------------------------------------------------------
+// Mapeamento de ícones por categoria
+// ---------------------------------------------------------------------------
+
+const CATEGORY_ICON_MAP: Array<[string, LucideIcon]> = [
+  ['elétric', Zap],
+  ['eletric', Zap],
+  ['hidráulic', Droplets],
+  ['hidrauil', Droplets],
+  ['encanamento', Droplets],
+  ['impermeabiliz', Droplets],
+  ['pintura', Paintbrush],
+  ['reforma', Hammer],
+  ['carpintaria', Hammer],
+  ['marcenaria', Hammer],
+  ['alvenaria', Hammer],
+  ['construção', Hammer],
+  ['demolição', Hammer],
+  ['jardinagem', Leaf],
+  ['jardim', Leaf],
+  ['limpeza', Sparkles],
+  ['higieniz', Sparkles],
+  ['ar condicionado', Wind],
+  ['climatiz', Wind],
+  ['ventilação', Wind],
+  ['mudança', Truck],
+  ['transporte', Truck],
+  ['dedetiz', Bug],
+  ['desinsetiz', Bug],
+  ['gás', Flame],
+  ['gas', Flame],
+  ['serralheria', Key],
+  ['fechadura', Key],
+  ['segurança', Shield],
+  ['piscina', Waves],
+  ['informática', Monitor],
+  ['tecnologia', Monitor],
+]
+
+const getCategoryIcon = (nome: string): LucideIcon => {
+  const lower = nome.toLowerCase()
+  for (const [key, Icon] of CATEGORY_ICON_MAP) {
+    if (lower.includes(key)) return Icon
+  }
+  return Wrench
+}
 
 // ---------------------------------------------------------------------------
 // Main Home Component
@@ -161,20 +208,23 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {catPrincipais.map((cat) => (
-              <Link 
-                key={cat.nome} 
-                to={`/marketplace?categoria=${encodeURIComponent(cat.nome)}`}
-                className="bg-white border border-neutral-100 rounded-2xl p-5 text-center hover:border-primary/30 hover:shadow-lg transition-all group flex flex-col items-center justify-center gap-3 aspect-square"
-              >
-                <div className="w-14 h-14 bg-neutral-50 rounded-full flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                  <span className="text-xl font-bold">{cat.nome.charAt(0).toUpperCase()}</span>
-                </div>
-                <span className="font-semibold text-neutral-700 text-sm group-hover:text-primary transition-colors line-clamp-2">
-                  {normalizeTitle(cat.nome)}
-                </span>
-              </Link>
-            ))}
+            {catPrincipais.map((cat) => {
+              const Icon = getCategoryIcon(cat.nome)
+              return (
+                <Link
+                  key={cat.nome}
+                  to={`/marketplace?categoria=${encodeURIComponent(cat.nome)}`}
+                  className="bg-white border border-neutral-100 rounded-2xl p-5 text-center hover:border-primary/30 hover:shadow-lg transition-all group flex flex-col items-center justify-center gap-3 aspect-square"
+                >
+                  <div className="w-14 h-14 bg-neutral-50 rounded-full flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                    <Icon size={28} />
+                  </div>
+                  <span className="font-semibold text-neutral-700 text-sm group-hover:text-primary transition-colors line-clamp-2">
+                    {normalizeTitle(cat.nome)}
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </Container>
       </section>
