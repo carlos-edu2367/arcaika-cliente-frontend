@@ -114,7 +114,7 @@ export default function Home() {
   return (
     <PageWrapper>
       {/* --- HERO SECTION --- */}
-      <section className="relative bg-neutral-900 pt-16 pb-24 overflow-hidden">
+      <section className="relative bg-neutral-900 pt-10 sm:pt-16 pb-20 sm:pb-24 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 blur-[120px] rounded-full mix-blend-screen" />
           <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-warning/10 blur-[100px] rounded-full mix-blend-screen" />
@@ -129,12 +129,12 @@ export default function Home() {
               </span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-extrabold text-white font-poppins tracking-tight leading-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white font-poppins tracking-tight leading-tight mb-4 sm:mb-6">
               Serviços <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-primary-300">profissionais</span><br />
               para sua casa ou empresa
             </h1>
             
-            <p className="text-lg text-neutral-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-neutral-400 mb-6 sm:mb-10 max-w-2xl mx-auto leading-relaxed">
               Encontre especialistas em pintura, elétrica, hidráulica, limpeza e muito mais. Orçamentos rápidos e pagamento seguro.
             </p>
 
@@ -151,9 +151,9 @@ export default function Home() {
                 name="q"
                 type="text" 
                 placeholder="O que você precisa hoje? (Ex: Pintor, Diarista...)"
-                className="flex-1 bg-transparent border-none focus:ring-0 px-4 py-3 text-neutral-900 font-medium placeholder:text-neutral-400 outline-none"
+                className="min-w-0 flex-1 bg-transparent border-none focus:ring-0 px-3 sm:px-4 py-3 text-neutral-900 font-medium placeholder:text-neutral-400 outline-none"
               />
-              <button type="submit" className="bg-primary hover:bg-primary-hover text-white px-8 py-3.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
+              <button type="submit" className="shrink-0 bg-primary hover:bg-primary-hover text-white px-4 sm:px-8 py-3.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
                 Buscar
               </button>
             </form>
