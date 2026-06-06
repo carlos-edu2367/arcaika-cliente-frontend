@@ -113,9 +113,10 @@ export default function Carrinho() {
                           <div className="flex items-center gap-4 mt-3">
                             <div className="flex items-center border border-neutral-200 rounded-xl overflow-hidden bg-neutral-50/50">
                               <button
+                                aria-label={`Diminuir quantidade de ${s.titulo}`}
                                 onClick={() => {
-                                  if (s.quantidade <= 1) removerServico.mutate(s.id)
-                                  else atualizarServico.mutate({ id: s.id, quantidade: s.quantidade - 1 })
+                                  if (s.quantidade <= 1) removerServico.mutate(s.servico_id)
+                                  else atualizarServico.mutate({ id: s.servico_id, quantidade: s.quantidade - 1 })
                                 }}
                                 className="px-3 py-1.5 hover:bg-neutral-100 transition-colors"
                               >
@@ -123,13 +124,18 @@ export default function Carrinho() {
                               </button>
                               <span className="px-3 text-sm font-bold min-w-[2rem] text-center">{s.quantidade}</span>
                               <button
-                                onClick={() => atualizarServico.mutate({ id: s.id, quantidade: s.quantidade + 1 })}
+                                aria-label={`Aumentar quantidade de ${s.titulo}`}
+                                onClick={() => atualizarServico.mutate({ id: s.servico_id, quantidade: s.quantidade + 1 })}
                                 className="px-3 py-1.5 hover:bg-neutral-100 transition-colors"
                               >
                                 <Plus size={14} />
                               </button>
                             </div>
-                            <button onClick={() => removerServico.mutate(s.id)} className="text-neutral-400 hover:text-error transition-colors">
+                            <button
+                              aria-label={`Remover ${s.titulo}`}
+                              onClick={() => removerServico.mutate(s.servico_id)}
+                              className="text-neutral-400 hover:text-error transition-colors"
+                            >
                               <Trash2 size={18} />
                             </button>
                           </div>
@@ -178,7 +184,11 @@ export default function Carrinho() {
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-neutral-900 text-sm leading-tight truncate">{i.titulo}</p>
                         <div className="flex items-center gap-3 mt-2">
-                          <button onClick={() => removerItem.mutate(i.id)} className="text-neutral-400 hover:text-error transition-colors">
+                          <button
+                            aria-label={`Remover ${i.titulo}`}
+                            onClick={() => removerItem.mutate(i.item_id)}
+                            className="text-neutral-400 hover:text-error transition-colors"
+                          >
                             <Trash2 size={16} />
                           </button>
                           <span className="text-xs font-semibold text-neutral-500">{i.quantidade} unidade(s)</span>
@@ -211,9 +221,10 @@ export default function Carrinho() {
                         <div className="flex items-center gap-4 mt-3">
                           <div className="flex items-center border border-neutral-200 rounded-xl overflow-hidden bg-neutral-50/50">
                             <button
+                              aria-label={`Diminuir quantidade de ${p.titulo}`}
                               onClick={() => {
-                                if (p.quantidade <= 1) removerProduto.mutate(p.id)
-                                else atualizarProduto.mutate({ id: p.id, quantidade: p.quantidade - 1 })
+                                if (p.quantidade <= 1) removerProduto.mutate(p.produto_id)
+                                else atualizarProduto.mutate({ id: p.produto_id, quantidade: p.quantidade - 1 })
                               }}
                               className="px-2.5 py-1 hover:bg-neutral-100 transition-colors"
                             >
@@ -221,13 +232,18 @@ export default function Carrinho() {
                             </button>
                             <span className="px-2.5 text-xs font-bold min-w-[1.5rem] text-center">{p.quantidade}</span>
                             <button
-                              onClick={() => atualizarProduto.mutate({ id: p.id, quantidade: p.quantidade + 1 })}
+                              aria-label={`Aumentar quantidade de ${p.titulo}`}
+                              onClick={() => atualizarProduto.mutate({ id: p.produto_id, quantidade: p.quantidade + 1 })}
                               className="px-2.5 py-1 hover:bg-neutral-100 transition-colors"
                             >
                               <Plus size={12} />
                             </button>
                           </div>
-                          <button onClick={() => removerProduto.mutate(p.id)} className="text-neutral-400 hover:text-error transition-colors">
+                          <button
+                            aria-label={`Remover ${p.titulo}`}
+                            onClick={() => removerProduto.mutate(p.produto_id)}
+                            className="text-neutral-400 hover:text-error transition-colors"
+                          >
                             <Trash2 size={16} />
                           </button>
                         </div>

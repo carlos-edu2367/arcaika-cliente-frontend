@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MapPin, ShoppingCart } from 'lucide-react'
 import type { Servico } from '@/types/domain'
@@ -7,6 +7,7 @@ import { Stars } from '@/components/ui/Stars'
 import { useCarrinho } from '@/hooks/useCarrinho'
 import { useServicePhotos } from '@/hooks/useMidia'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { ServiceQuantityDialog } from '@/components/marketplace/ServiceQuantityDialog'
 
 interface ServiceCardProps {
   servico: Servico
@@ -18,6 +19,7 @@ interface ServiceCardProps {
 // PERF-06: React.memo para evitar re-renders ao trocar filtros sem mudança de dado
 function ServiceCardComponent({ servico, imageUrl, isImageLoading, className }: ServiceCardProps) {
   const { adicionarServico } = useCarrinho()
+  const [isQuantityOpen, setIsQuantityOpen] = useState(false)
   const hasPhotos = (servico.fotos_count ?? 0) > 0
 
   const { data: photosData, isLoading: isLoadingIndividual } = useServicePhotos(
@@ -28,6 +30,7 @@ function ServiceCardComponent({ servico, imageUrl, isImageLoading, className }: 
   const coverPhoto = imageUrl || photosData?.fotos?.[0]?.url
 
   return (
+    <>
     <div className={cn('bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow', className)}>
       <Link to={`/servicos/${servico.id}`} className="block">
         <div className="aspect-[4/3] bg-neutral-100 overflow-hidden">
@@ -86,7 +89,7 @@ function ServiceCardComponent({ servico, imageUrl, isImageLoading, className }: 
             </p>
           </div>
           <button
-            onClick={() => adicionarServico.mutate({ id: servico.id })}
+            onClick={() => setIsQuantityOpen(true)}
             disabled={!servico.disponivel || adicionarServico.isPending}
             className="flex items-center gap-1.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
           >
@@ -96,6 +99,18 @@ function ServiceCardComponent({ servico, imageUrl, isImageLoading, className }: 
         </div>
       </div>
     </div>
+    <ServiceQuantityDialog
+      isOpen={isQuantityOpen}
+      serviceTitle={servico.titulo || servico.nome || 'Serviço'}
+      unit={servico.unidade_medida}
+      isPending={adicionarServico.isPending}
+      onClose={() => setIsQuantityOpen(false)}
+      onConfirm={(quantidade) => {
+        adicionarServico.mutate({ id: servico.id, quantidade })
+        setIsQuantityOpen(false)
+      }}
+    />
+    </>
   )
 }
 

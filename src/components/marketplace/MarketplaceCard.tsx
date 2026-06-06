@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MapPin, ShoppingCart, Star } from 'lucide-react'
 import type { MarketplaceItem, MarketplaceServico } from '@/types/marketplace'
@@ -6,6 +6,7 @@ import { formatCurrency, cn } from '@/lib/utils'
 import { useCarrinho } from '@/hooks/useCarrinho'
 import { useItemPhotos, useServicePhotos } from '@/hooks/useMidia'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { ServiceQuantityDialog } from '@/components/marketplace/ServiceQuantityDialog'
 
 interface MarketplaceCardProps {
   item: MarketplaceItem | MarketplaceServico
@@ -17,6 +18,7 @@ interface MarketplaceCardProps {
 
 export function MarketplaceCard({ item, tipo, imageUrl, isImageLoading, className }: MarketplaceCardProps) {
   const { adicionarServico, adicionarItem } = useCarrinho()
+  const [isQuantityOpen, setIsQuantityOpen] = useState(false)
   const hasPhotos = (item.fotos_count ?? 0) > 0
   
   // Se não foi passada imageUrl via batch, o card busca individualmente
@@ -47,7 +49,7 @@ export function MarketplaceCard({ item, tipo, imageUrl, isImageLoading, classNam
     e.preventDefault()
     e.stopPropagation()
     if (tipo === 'servico') {
-      adicionarServico.mutate({ id: item.id })
+      setIsQuantityOpen(true)
     } else {
       adicionarItem.mutate({ id: item.id })
     }
@@ -147,6 +149,7 @@ export function MarketplaceCard({ item, tipo, imageUrl, isImageLoading, classNam
 
           <button
             onClick={handleAdd}
+            disabled={tipo === 'servico' ? adicionarServico.isPending : adicionarItem.isPending}
             className="flex items-center justify-center w-10 h-10 bg-primary-50 text-primary hover:bg-primary hover:text-white rounded-xl transition-all active:scale-90 shadow-sm"
             title="Adicionar ao carrinho"
           >
@@ -154,6 +157,19 @@ export function MarketplaceCard({ item, tipo, imageUrl, isImageLoading, classNam
           </button>
         </div>
       </div>
+      {tipo === 'servico' && (
+        <ServiceQuantityDialog
+          isOpen={isQuantityOpen}
+          serviceTitle={titulo || s.nome || 'Serviço'}
+          unit={s.unidade_medida}
+          isPending={adicionarServico.isPending}
+          onClose={() => setIsQuantityOpen(false)}
+          onConfirm={(quantidade) => {
+            adicionarServico.mutate({ id: item.id, quantidade })
+            setIsQuantityOpen(false)
+          }}
+        />
+      )}
     </div>
   )
 }

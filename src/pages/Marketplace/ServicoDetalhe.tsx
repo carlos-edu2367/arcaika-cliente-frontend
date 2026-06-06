@@ -19,6 +19,7 @@ import { useAvaliacoesServico } from '@/hooks/useAvaliacoes'
 import { cn } from '@/lib/utils'
 import { ProdutoRelacionado } from '@/types/marketplace'
 import WizardOrcamento from '@/components/marketplace/WizardOrcamento'
+import { ServiceQuantityDialog } from '@/components/marketplace/ServiceQuantityDialog'
 
 import { ReviewItem } from '@/components/shared/ReviewItem'
 
@@ -143,6 +144,7 @@ export default function ServicoDetalhe() {
   // Estado Local para Opcionais (Checklist)
   const [selectedProdutos, setSelectedProdutos] = useState<Set<string>>(new Set())
   const [isWizardOpen, setIsWizardOpen] = useState(false)
+  const [isQuantityOpen, setIsQuantityOpen] = useState(false)
 
   const toggleProduto = (prodId: string) => {
     setSelectedProdutos((prev: Set<string>) => {
@@ -195,16 +197,23 @@ export default function ServicoDetalhe() {
       return
     }
     if (!servico?.id) return
+    setIsQuantityOpen(true)
+  }
+
+  const handleConfirmContratar = async (quantidade: number) => {
+    if (!servico?.id) return
 
     try {
       // Enviar serviço e produtos selecionados em uma única chamada
       const produtosIds = Array.from(selectedProdutos)
       
       await adicionarServico.mutateAsync({ 
-        id: servico.id, 
+        id: servico.id,
+        quantidade,
         produtosIds 
       })
 
+      setIsQuantityOpen(false)
       navigate('/carrinho')
     } catch (error) {
       console.error('Erro ao contratar:', error)
@@ -556,6 +565,14 @@ export default function ServicoDetalhe() {
         </div>
 
       </Container>
+      <ServiceQuantityDialog
+        isOpen={isQuantityOpen}
+        serviceTitle={servico.titulo || servico.nome || 'Serviço'}
+        unit={servico.unidade_medida}
+        isPending={adicionarServico.isPending}
+        onClose={() => setIsQuantityOpen(false)}
+        onConfirm={handleConfirmContratar}
+      />
       <WizardOrcamento isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} />
     </PageWrapper>
   )
