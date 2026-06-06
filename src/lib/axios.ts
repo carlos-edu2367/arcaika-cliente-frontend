@@ -37,6 +37,13 @@ api.interceptors.response.use(
     const originalRequest = error.config as any
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Endpoints de auth nunca devem disparar refresh — credenciais erradas devem
+      // propagar o 401 diretamente para exibir mensagem amigável ao usuário.
+      const url: string = originalRequest.url ?? ''
+      if (url.includes('/auth/cliente') || url.includes('/auth/refresh')) {
+        return Promise.reject(error)
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })

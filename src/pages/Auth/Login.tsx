@@ -34,13 +34,14 @@ export default function Login() {
       await login(data)
       navigate(from, { replace: true })
     } catch (err: any) {
+      const status = err?.response?.status
       const detail = err?.response?.data?.detail
-      if (detail) {
-        if (Array.isArray(detail)) {
-          setLoginError(detail[0]?.msg || 'Erro de validação dos dados.')
-        } else {
-          setLoginError(typeof detail === 'string' ? detail : 'E-mail ou senha incorretos.')
-        }
+      if (status === 401) {
+        setLoginError('E-mail ou senha incorretos. Verifique seus dados e tente novamente.')
+      } else if (Array.isArray(detail) && detail.length > 0) {
+        setLoginError(detail[0]?.msg || 'Erro de validação dos dados.')
+      } else if (typeof detail === 'string' && detail) {
+        setLoginError(detail)
       } else if (err.message === 'Dados de usuário ausentes na resposta da API.') {
         setLoginError('Erro ao processar dados do usuário. Contate o suporte.')
       } else {
