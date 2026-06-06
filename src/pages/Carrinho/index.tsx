@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trash2, ShoppingBag, Tag, X, Plus, Minus, ArrowRight } from 'lucide-react'
 import { PageWrapper } from '@/components/layout/PageWrapper'
@@ -26,6 +26,83 @@ function CarrinhoVazio() {
       >
         Explorar serviços
       </Link>
+    </div>
+  )
+}
+
+interface QuantitySelectorProps {
+  title: string
+  quantity: number
+  onDecrease: () => void
+  onIncrease: () => void
+  onQuantityChange: (quantity: number) => void
+  buttonClassName?: string
+  inputClassName?: string
+  iconSize?: number
+}
+
+function QuantitySelector({
+  title,
+  quantity,
+  onDecrease,
+  onIncrease,
+  onQuantityChange,
+  buttonClassName = 'px-3 py-1.5',
+  inputClassName = 'w-12 text-sm',
+  iconSize = 14,
+}: QuantitySelectorProps) {
+  const [draft, setDraft] = useState(String(quantity))
+  const lastCommittedRef = useRef(quantity)
+
+  useEffect(() => {
+    setDraft(String(quantity))
+    lastCommittedRef.current = quantity
+  }, [quantity])
+
+  const commitDraft = () => {
+    const parsed = Number.parseInt(draft, 10)
+    const nextQuantity = Number.isFinite(parsed) ? Math.max(1, parsed) : quantity
+
+    setDraft(String(nextQuantity))
+    if (nextQuantity !== lastCommittedRef.current) {
+      lastCommittedRef.current = nextQuantity
+      onQuantityChange(nextQuantity)
+    }
+  }
+
+  return (
+    <div className="flex items-center border border-neutral-200 rounded-xl overflow-hidden bg-neutral-50/50">
+      <button
+        aria-label={`Diminuir quantidade de ${title}`}
+        onClick={onDecrease}
+        className={`${buttonClassName} hover:bg-neutral-100 transition-colors`}
+      >
+        <Minus size={iconSize} />
+      </button>
+      <input
+        aria-label={`Quantidade de ${title}`}
+        type="number"
+        min={1}
+        step={1}
+        inputMode="numeric"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commitDraft}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            commitDraft()
+          }
+        }}
+        className={`${inputClassName} bg-transparent text-center font-bold text-neutral-900 focus:outline-none focus:bg-white [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+      />
+      <button
+        aria-label={`Aumentar quantidade de ${title}`}
+        onClick={onIncrease}
+        className={`${buttonClassName} hover:bg-neutral-100 transition-colors`}
+      >
+        <Plus size={iconSize} />
+      </button>
     </div>
   )
 }
@@ -111,26 +188,16 @@ export default function Carrinho() {
                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                           <p className="font-bold text-neutral-900 text-base leading-tight truncate">{s.titulo}</p>
                           <div className="flex items-center gap-4 mt-3">
-                            <div className="flex items-center border border-neutral-200 rounded-xl overflow-hidden bg-neutral-50/50">
-                              <button
-                                aria-label={`Diminuir quantidade de ${s.titulo}`}
-                                onClick={() => {
-                                  if (s.quantidade <= 1) removerServico.mutate(s.servico_id)
-                                  else atualizarServico.mutate({ id: s.servico_id, quantidade: s.quantidade - 1 })
-                                }}
-                                className="px-3 py-1.5 hover:bg-neutral-100 transition-colors"
-                              >
-                                <Minus size={14} />
-                              </button>
-                              <span className="px-3 text-sm font-bold min-w-[2rem] text-center">{s.quantidade}</span>
-                              <button
-                                aria-label={`Aumentar quantidade de ${s.titulo}`}
-                                onClick={() => atualizarServico.mutate({ id: s.servico_id, quantidade: s.quantidade + 1 })}
-                                className="px-3 py-1.5 hover:bg-neutral-100 transition-colors"
-                              >
-                                <Plus size={14} />
-                              </button>
-                            </div>
+                            <QuantitySelector
+                              title={s.titulo}
+                              quantity={s.quantidade}
+                              onDecrease={() => {
+                                if (s.quantidade <= 1) removerServico.mutate(s.servico_id)
+                                else atualizarServico.mutate({ id: s.servico_id, quantidade: s.quantidade - 1 })
+                              }}
+                              onIncrease={() => atualizarServico.mutate({ id: s.servico_id, quantidade: s.quantidade + 1 })}
+                              onQuantityChange={(quantidade) => atualizarServico.mutate({ id: s.servico_id, quantidade })}
+                            />
                             <button
                               aria-label={`Remover ${s.titulo}`}
                               onClick={() => removerServico.mutate(s.servico_id)}
@@ -219,26 +286,19 @@ export default function Carrinho() {
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-neutral-900 text-sm leading-tight truncate">{p.titulo}</p>
                         <div className="flex items-center gap-4 mt-3">
-                          <div className="flex items-center border border-neutral-200 rounded-xl overflow-hidden bg-neutral-50/50">
-                            <button
-                              aria-label={`Diminuir quantidade de ${p.titulo}`}
-                              onClick={() => {
-                                if (p.quantidade <= 1) removerProduto.mutate(p.produto_id)
-                                else atualizarProduto.mutate({ id: p.produto_id, quantidade: p.quantidade - 1 })
-                              }}
-                              className="px-2.5 py-1 hover:bg-neutral-100 transition-colors"
-                            >
-                              <Minus size={12} />
-                            </button>
-                            <span className="px-2.5 text-xs font-bold min-w-[1.5rem] text-center">{p.quantidade}</span>
-                            <button
-                              aria-label={`Aumentar quantidade de ${p.titulo}`}
-                              onClick={() => atualizarProduto.mutate({ id: p.produto_id, quantidade: p.quantidade + 1 })}
-                              className="px-2.5 py-1 hover:bg-neutral-100 transition-colors"
-                            >
-                              <Plus size={12} />
-                            </button>
-                          </div>
+                          <QuantitySelector
+                            title={p.titulo}
+                            quantity={p.quantidade}
+                            onDecrease={() => {
+                              if (p.quantidade <= 1) removerProduto.mutate(p.produto_id)
+                              else atualizarProduto.mutate({ id: p.produto_id, quantidade: p.quantidade - 1 })
+                            }}
+                            onIncrease={() => atualizarProduto.mutate({ id: p.produto_id, quantidade: p.quantidade + 1 })}
+                            onQuantityChange={(quantidade) => atualizarProduto.mutate({ id: p.produto_id, quantidade })}
+                            buttonClassName="px-2.5 py-1"
+                            inputClassName="w-10 text-xs"
+                            iconSize={12}
+                          />
                           <button
                             aria-label={`Remover ${p.titulo}`}
                             onClick={() => removerProduto.mutate(p.produto_id)}

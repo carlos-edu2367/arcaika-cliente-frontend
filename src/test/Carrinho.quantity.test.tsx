@@ -118,6 +118,34 @@ describe('Carrinho quantity controls', () => {
     expect(removerProduto.mutate).toHaveBeenCalledWith('catalogo-produto-1')
   })
 
+  it('allows typing a service quantity directly', async () => {
+    renderCarrinho()
+
+    const input = screen.getByRole('spinbutton', { name: /quantidade de pintura/i })
+    await userEvent.clear(input)
+    await userEvent.type(input, '18')
+    await userEvent.tab()
+
+    expect(atualizarServico.mutate).toHaveBeenCalledWith({
+      id: 'catalogo-servico-1',
+      quantidade: 18,
+    })
+  })
+
+  it('allows typing a product quantity directly', async () => {
+    renderCarrinho()
+
+    const input = screen.getByRole('spinbutton', { name: /quantidade de tinta extra/i })
+    await userEvent.clear(input)
+    await userEvent.type(input, '9')
+    await userEvent.keyboard('{Enter}')
+
+    expect(atualizarProduto.mutate).toHaveBeenCalledWith({
+      id: 'catalogo-produto-1',
+      quantidade: 9,
+    })
+  })
+
   it('removes marketplace items using the catalog item id', async () => {
     renderCarrinho()
 
