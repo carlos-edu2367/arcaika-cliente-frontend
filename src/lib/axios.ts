@@ -1,5 +1,6 @@
 import axios, { type AxiosError } from 'axios'
 import { useAuthStore } from '@/stores/authStore'
+import { resolveAuthUser } from '@/lib/authUser'
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'https://arcaika-api-197035729546.southamerica-east1.run.app',
@@ -37,8 +38,6 @@ api.interceptors.response.use(
     const originalRequest = error.config as any
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Endpoints de auth nunca devem disparar refresh — credenciais erradas devem
-      // propagar o 401 diretamente para exibir mensagem amigável ao usuário.
       const url: string = originalRequest.url ?? ''
       if (url.includes('/auth/cliente') || url.includes('/auth/refresh')) {
         return Promise.reject(error)
@@ -66,14 +65,11 @@ api.interceptors.response.use(
         )
 
         const currentUser = useAuthStore.getState().user
-        // Se a resposta vier com user, usa, senão mantém o atual
-        const incomingUser =
-          data.user ||
-          data.cliente ||
-          data.usuario ||
-          data.prestador ||
-          data.colaborador ||
-          currentUser
+        const incomingUser = resolveAuthUser(data, currentUser)
+
+        if (!incomingUser) {
+          throw new Error('Dados de usuario ausentes no refresh.')
+        }
 
         useAuthStore.getState().login(data.access_token, null, incomingUser)
 
@@ -90,11 +86,9 @@ api.interceptors.response.use(
       }
     }
 
-    // API-06: Parseia erros 422 do FastAPI (Unprocessable Entity) em mensagem legível
     if (error.response?.status === 422) {
       const detail = error.response.data?.detail
       if (Array.isArray(detail) && detail.length > 0) {
-        // Extrai mensagens de cada campo e adiciona ao error para uso nos handlers
         const msg = detail.map((e: any) => e.msg).join('; ')
         ;(error as AxiosError & { userMessage?: string }).userMessage = msg
       } else if (typeof detail === 'string') {
@@ -102,10 +96,9 @@ api.interceptors.response.use(
       }
     }
 
-    // API-14: rate limit — erro amigável
     if (error.response?.status === 429) {
       ;(error as AxiosError & { userMessage?: string }).userMessage =
-        'Muitas requisições. Aguarde um momento antes de tentar novamente.'
+        'Muitas requisicoes. Aguarde um momento antes de tentar novamente.'
     }
 
     return Promise.reject(error)

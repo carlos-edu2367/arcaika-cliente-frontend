@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
+import { resolveAuthUser } from '@/lib/authUser'
 
 interface RequireAuthProps {
   children: React.ReactNode
@@ -29,8 +30,10 @@ export function RequireAuth({ children, redirectTo = '/auth/login' }: RequireAut
         { withCredentials: true }
       )
       .then(({ data }) => {
-        const resolvedUser =
-          data.user ?? data.cliente ?? data.usuario ?? data.prestador ?? data.colaborador ?? user
+        const resolvedUser = resolveAuthUser(data, user)
+        if (!resolvedUser) {
+          throw new Error('Dados de usuario ausentes no refresh.')
+        }
         login(data.access_token, null, resolvedUser)
         setRefreshState('done')
       })
@@ -40,16 +43,16 @@ export function RequireAuth({ children, redirectTo = '/auth/login' }: RequireAut
       })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!isAuthenticated || refreshState === 'failed') {
-    return <Navigate to={redirectTo} state={{ from: location }} replace />
-  }
-
   if (refreshState === 'pending') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
+  }
+
+  if (!isAuthenticated || refreshState === 'failed') {
+    return <Navigate to={redirectTo} state={{ from: location }} replace />
   }
 
   return <>{children}</>
