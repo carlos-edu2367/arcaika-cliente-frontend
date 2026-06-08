@@ -8,6 +8,7 @@ import { RequireAuth } from '@/components/auth/RequireAuth'
 import { LoginModal } from '@/components/auth/LoginModal'
 import { LocationPicker } from '@/components/location/LocationPicker'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
+import { InstallBanner } from '@/components/pwa/InstallBanner'
 import { Toaster } from '@/components/ui/Toast'
 import { useUIStore } from '@/stores/uiStore'
 
@@ -117,6 +118,9 @@ export function AppRouter() {
 
       {/* Volta ao topo a cada navegação */}
       <ScrollToTop />
+
+      {/* Convite a instalar o PWA (acima do TopBar, no fluxo do documento) */}
+      <InstallBanner />
 
       <TopBar />
 
