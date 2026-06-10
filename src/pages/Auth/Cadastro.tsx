@@ -302,8 +302,13 @@ export default function Cadastro() {
     authService.resolvePartnerQr(parceiroQrSlug)
       .then((parceiro) => {
         if (ativo) {
-          setParceiroNome(parceiro.nome)
-          setParceiroErro(false)
+          if (parceiro.ativo) {
+            setParceiroNome(parceiro.nome)
+            setParceiroErro(false)
+          } else {
+            setParceiroNome(null)
+            setParceiroErro(true)
+          }
         }
       })
       .catch(() => {
