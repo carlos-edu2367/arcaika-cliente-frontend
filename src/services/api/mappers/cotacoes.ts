@@ -94,6 +94,8 @@ export function mapSolicitacao(item: SolicitacaoResponse): Cotacao {
     metragem: item.metragem,
     numero_contrato: item.numero_contrato,
     data_finalizacao_estimada: item.data_finalizacao_estimada,
+    parceiro_id: item.parceiro_id,
+    parceiro_nome: item.parceiro_nome,
   } as Cotacao
 }
 
@@ -121,6 +123,8 @@ export function mapSolicitacaoComOrcamentos(
     criado_em: solicitacao.criada_em || '',
     numero_contrato: solicitacao.numero_contrato,
     data_finalizacao_estimada: solicitacao.data_finalizacao_estimada,
+    parceiro_id: solicitacao.parceiro_id,
+    parceiro_nome: solicitacao.parceiro_nome,
     orcamentos: orcamentos.map((orc) => mapOrcamento(orc, solicitacao.id)),
   }
 }

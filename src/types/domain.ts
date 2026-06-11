@@ -215,6 +215,9 @@ export interface Cotacao {
   anexos?: string[]
   numero_contrato?: string | null
   data_finalizacao_estimada?: string | null
+  // Origem: presente quando a solicitação foi aberta pela imobiliária parceira
+  parceiro_id?: string | null
+  parceiro_nome?: string | null
 }
 
 export interface SolicitacaoResponse {
@@ -233,6 +236,8 @@ export interface SolicitacaoResponse {
   criada_em?: string | null
   status?: CotacaoStatus | string | null
   data_finalizacao_estimada?: string | null
+  parceiro_id?: string | null
+  parceiro_nome?: string | null
 }
 
 export interface ListaSolicitacoesClienteResponse {

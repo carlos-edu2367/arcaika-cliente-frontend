@@ -1,16 +1,27 @@
-import { useReducer, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { CheckCircle2, Eye, EyeOff, Mail, ChevronLeft } from 'lucide-react'
+import { CheckCircle2, Eye, EyeOff, KeyRound, Mail, ChevronLeft } from 'lucide-react'
 import { api } from '@/lib/axios'
 import { useUIStore } from '@/stores/uiStore'
 import { cn } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
-// Schemas
+// Fluxo de recuperação de senha do cliente.
+//
+// Contrato do backend (auth.py):
+//   POST /auth/recuperar-senha { email, tipo_usuario: 'cliente' }
+//     → envia um código de 6 dígitos por e-mail (válido por 15 minutos)
+//   POST /auth/redefinir-senha { email, tipo_usuario: 'cliente', codigo, nova_senha }
+//     → redefine a senha
+//
+// O e-mail de boas-vindas do cliente cadastrado pela imobiliária faz deep-link
+// para esta página com ?email=..., levando direto à etapa de código.
 // ---------------------------------------------------------------------------
+
+const TIPO_USUARIO = 'cliente'
 
 const emailSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -18,6 +29,7 @@ const emailSchema = z.object({
 
 const resetSchema = z
   .object({
+    codigo: z.string().regex(/^\d{6}$/, 'Informe o código de 6 dígitos'),
     senha: z
       .string()
       .min(8, 'Mínimo 8 caracteres')
@@ -33,33 +45,38 @@ const resetSchema = z
 type EmailData = z.infer<typeof emailSchema>
 type ResetData = z.infer<typeof resetSchema>
 
-// ---------------------------------------------------------------------------
-// State
-// ---------------------------------------------------------------------------
+type Screen = 'email' | 'reset' | 'sucesso'
 
-type Screen = 'email' | 'enviado' | 'reset' | 'sucesso'
+async function solicitarCodigo(email: string) {
+  // Sucesso silencioso — o backend nunca revela se o e-mail existe.
+  await api.post('/auth/recuperar-senha', { email, tipo_usuario: TIPO_USUARIO })
+}
 
 // ---------------------------------------------------------------------------
-// Tela 1 — Digitar email
+// Tela 1 — Digitar email e solicitar o código
 // ---------------------------------------------------------------------------
 
 function TelaEmail({
+  emailInicial,
   onSent,
 }: {
+  emailInicial: string
   onSent: (email: string) => void
 }) {
-  const addToast = useUIStore((s) => s.addToast)
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<EmailData>({ resolver: zodResolver(emailSchema) })
+  } = useForm<EmailData>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: { email: emailInicial },
+  })
 
   const onSubmit = async ({ email }: EmailData) => {
     try {
-      await api.post('/auth/recuperar-senha', { email })
+      await solicitarCodigo(email)
     } catch (_) {
-      // Não revelar se o e-mail existe ou não — sucesso silencioso
+      // Sucesso silencioso — não revelar se o e-mail existe.
     }
     onSent(email)
   }
@@ -74,7 +91,7 @@ function TelaEmail({
       <div className="text-center">
         <h1 className="text-2xl font-bold text-neutral-900">Recuperar senha</h1>
         <p className="text-sm text-neutral-500 mt-1">
-          Informe seu e-mail e enviaremos um link para redefinir sua senha.
+          Informe seu e-mail e enviaremos um código de 6 dígitos para você criar uma nova senha.
         </p>
       </div>
 
@@ -98,7 +115,7 @@ function TelaEmail({
           disabled={isSubmitting}
           className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-colors"
         >
-          {isSubmitting ? 'Enviando...' : 'Enviar link'}
+          {isSubmitting ? 'Enviando...' : 'Enviar código'}
         </button>
       </form>
     </div>
@@ -106,43 +123,21 @@ function TelaEmail({
 }
 
 // ---------------------------------------------------------------------------
-// Tela 2 — E-mail enviado
+// Tela 2 — Informar o código e a nova senha
 // ---------------------------------------------------------------------------
 
-function TelaEnviado({ email, onRetry }: { email: string; onRetry: () => void }) {
-  return (
-    <div className="text-center space-y-5">
-      <div className="flex justify-center">
-        <CheckCircle2 size={56} className="text-success" strokeWidth={1.5} />
-      </div>
-      <div>
-        <h2 className="text-xl font-bold text-neutral-900">Verifique seu e-mail</h2>
-        <p className="text-sm text-neutral-500 mt-2">
-          Enviamos um link para{' '}
-          <span className="font-medium text-neutral-700">{email}</span>.
-          Verifique também a pasta de spam.
-        </p>
-      </div>
-      <p className="text-xs text-neutral-400">
-        O link expira em 30 minutos.
-      </p>
-      <button
-        onClick={onRetry}
-        className="text-sm text-primary-600 hover:underline font-medium"
-      >
-        Reenviar e-mail
-      </button>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Tela 3 — Nova senha (via token na URL)
-// ---------------------------------------------------------------------------
-
-function TelaResetSenha({ token, onDone }: { token: string; onDone: () => void }) {
+function TelaResetSenha({
+  email,
+  onDone,
+  onTrocarEmail,
+}: {
+  email: string
+  onDone: () => void
+  onTrocarEmail: () => void
+}) {
   const [showSenha, setShowSenha] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [reenviando, setReenviando] = useState(false)
   const addToast = useUIStore((s) => s.addToast)
 
   const {
@@ -161,12 +156,29 @@ function TelaResetSenha({ token, onDone }: { token: string; onDone: () => void }
   ]
   const score = strength.filter(Boolean).length
 
-  const onSubmit = async ({ senha }: ResetData) => {
+  const onSubmit = async ({ codigo, senha }: ResetData) => {
     try {
-      await api.post('/auth/redefinir-senha', { token, senha })
+      await api.post('/auth/redefinir-senha', {
+        email,
+        tipo_usuario: TIPO_USUARIO,
+        codigo,
+        nova_senha: senha,
+      })
       onDone()
     } catch (_) {
-      addToast({ type: 'error', title: 'Link inválido ou expirado. Solicite um novo.' })
+      addToast({ type: 'error', title: 'Código inválido ou expirado. Solicite um novo.' })
+    }
+  }
+
+  const handleReenviar = async () => {
+    setReenviando(true)
+    try {
+      await solicitarCodigo(email)
+      addToast({ type: 'success', title: 'Enviamos um novo código para o seu e-mail.' })
+    } catch (_) {
+      addToast({ type: 'success', title: 'Enviamos um novo código para o seu e-mail.' })
+    } finally {
+      setReenviando(false)
     }
   }
 
@@ -174,10 +186,29 @@ function TelaResetSenha({ token, onDone }: { token: string; onDone: () => void }
     <div className="space-y-5">
       <div className="text-center">
         <h1 className="text-2xl font-bold text-neutral-900">Nova senha</h1>
-        <p className="text-sm text-neutral-500 mt-1">Crie uma senha forte para sua conta.</p>
+        <p className="text-sm text-neutral-500 mt-1">
+          Enviamos um código de 6 dígitos para{' '}
+          <span className="font-medium text-neutral-700">{email}</span>. Ele é válido por 15 minutos.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 mb-1">Código</label>
+          <div className="relative">
+            <KeyRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <input
+              {...register('codigo')}
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="000000"
+              autoFocus
+              className="w-full border border-neutral-200 rounded-lg pl-9 pr-3 py-2.5 text-sm tracking-[0.35em] focus:outline-none focus:ring-2 focus:ring-primary-400"
+            />
+          </div>
+          {errors.codigo && <p className="text-xs text-error mt-1">{errors.codigo.message}</p>}
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Nova senha</label>
           <div className="relative">
@@ -185,7 +216,6 @@ function TelaResetSenha({ token, onDone }: { token: string; onDone: () => void }
               type={showSenha ? 'text' : 'password'}
               {...register('senha')}
               placeholder="••••••••"
-              autoFocus
               className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
             <button
@@ -242,12 +272,30 @@ function TelaResetSenha({ token, onDone }: { token: string; onDone: () => void }
           {isSubmitting ? 'Salvando...' : 'Redefinir senha'}
         </button>
       </form>
+
+      <div className="flex items-center justify-between text-sm">
+        <button
+          type="button"
+          onClick={handleReenviar}
+          disabled={reenviando}
+          className="text-primary-600 hover:underline font-medium disabled:opacity-50"
+        >
+          {reenviando ? 'Reenviando...' : 'Reenviar código'}
+        </button>
+        <button
+          type="button"
+          onClick={onTrocarEmail}
+          className="text-neutral-500 hover:text-neutral-700"
+        >
+          Trocar e-mail
+        </button>
+      </div>
     </div>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Tela 4 — Sucesso do reset
+// Tela 3 — Sucesso do reset
 // ---------------------------------------------------------------------------
 
 function TelaSucesso() {
@@ -278,29 +326,43 @@ function TelaSucesso() {
 
 export default function RecuperarSenha() {
   const [searchParams] = useSearchParams()
-  const tokenFromUrl = searchParams.get('token')
+  const emailFromUrl = searchParams.get('email') ?? ''
 
-  const [screen, setScreen] = useState<Screen>(tokenFromUrl ? 'reset' : 'email')
-  const [email, setEmail] = useState('')
+  // Deep-link com ?email= (ex.: e-mail de boas-vindas da imobiliária) já leva
+  // o cliente direto para a etapa de código.
+  const [screen, setScreen] = useState<Screen>(emailFromUrl ? 'reset' : 'email')
+  const [email, setEmail] = useState(emailFromUrl)
+  const codigoAutoEnviado = useRef(false)
+
+  // No deep-link, dispara o envio do código automaticamente (uma única vez).
+  useEffect(() => {
+    if (emailFromUrl && !codigoAutoEnviado.current) {
+      codigoAutoEnviado.current = true
+      void solicitarCodigo(emailFromUrl).catch(() => {
+        /* silencioso — o backend nunca revela se o e-mail existe */
+      })
+    }
+  }, [emailFromUrl])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-50 p-4">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-neutral-100 p-8 space-y-6">
         {screen === 'email' && (
           <TelaEmail
+            emailInicial={email}
             onSent={(e) => {
               setEmail(e)
-              setScreen('enviado')
+              setScreen('reset')
             }}
           />
         )}
 
-        {screen === 'enviado' && (
-          <TelaEnviado email={email} onRetry={() => setScreen('email')} />
-        )}
-
-        {screen === 'reset' && tokenFromUrl && (
-          <TelaResetSenha token={tokenFromUrl} onDone={() => setScreen('sucesso')} />
+        {screen === 'reset' && (
+          <TelaResetSenha
+            email={email}
+            onDone={() => setScreen('sucesso')}
+            onTrocarEmail={() => setScreen('email')}
+          />
         )}
 
         {screen === 'sucesso' && <TelaSucesso />}

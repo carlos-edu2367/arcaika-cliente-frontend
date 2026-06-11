@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, MapPin, Calendar, Star, Clock } from 'lucide-react'
+import { ChevronLeft, MapPin, Calendar, Star, Clock, Building2 } from 'lucide-react'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Container } from '@/components/layout/Container'
 import { useCotacao } from '@/hooks/useCotacoes'
@@ -58,9 +58,19 @@ export default function CotacaoDetalhe() {
           <div className="lg:col-span-1">
             <div className="bg-white border border-neutral-100 rounded-2xl p-5 shadow-sm space-y-4 sticky top-20">
               <div>
-                <span className={`inline-flex text-xs font-semibold px-2.5 py-1 rounded-full ${config.bg} ${config.color}`}>
-                  {config.label}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex text-xs font-semibold px-2.5 py-1 rounded-full ${config.bg} ${config.color}`}>
+                    {config.label}
+                  </span>
+                  {cotacao.parceiro_id && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-light text-primary">
+                      <Building2 size={12} />
+                      {cotacao.parceiro_nome
+                        ? `Via ${cotacao.parceiro_nome}`
+                        : 'Solicitado pela sua imobiliária'}
+                    </span>
+                  )}
+                </div>
                 <h1 className="text-lg font-bold text-neutral-900 mt-2 leading-snug">{titulo}</h1>
                 {cotacao.titulo && (
                   <p className="text-sm text-neutral-600 leading-relaxed mt-2">{cotacao.descricao}</p>
