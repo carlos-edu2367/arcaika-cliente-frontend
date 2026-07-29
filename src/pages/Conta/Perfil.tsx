@@ -10,6 +10,13 @@ import { useUIStore } from '@/stores/uiStore'
 import { Spinner } from '@/components/ui/Spinner'
 import { AccountSidebar } from '@/components/account/AccountSidebar';
 
+function mascararParaExibicao(documento: string): string {
+  const d = documento.replace(/\D/g, '')
+  if (d.length === 14) return `**.***.***/${d.slice(8, 12)}-${d.slice(12)}`
+  if (d.length === 11) return `***.***.${d.slice(6, 9)}-${d.slice(9)}`
+  return documento
+}
+
 export default function Perfil() {
   const { updateUser } = useAuthStore()
   const addToast = useUIStore((s) => s.addToast)
@@ -108,7 +115,7 @@ export default function Perfil() {
                     { label: 'Nome completo', value: `${cliente?.nome ?? ''} ${(cliente as any)?.sobrenome ?? ''}`.trim() || '—' },
                     { label: 'Email', value: cliente?.email ?? '—' },
                     { label: 'Telefone', value: cliente?.telefone ?? '—' },
-                    { label: 'CPF', value: cliente?.cpf ? `***.***.${cliente.cpf.slice(-6, -2)}-${cliente.cpf.slice(-2)}` : '—' },
+                    { label: 'CPF/CNPJ', value: cliente?.cpf ? mascararParaExibicao(cliente.cpf) : '—' },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex flex-col sm:flex-row sm:items-center gap-1 py-3 border-b border-neutral-50 last:border-0">
                       <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wide sm:w-40 shrink-0">{label}</span>

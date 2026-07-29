@@ -53,7 +53,7 @@ export function useAuth() {
       if (!loggedUser && regRes.usuario_id) {
         loggedUser = {
           id: regRes.usuario_id,
-          nome: regRes.nome_completo || `${data.nome} ${data.sobrenome}`,
+          nome: regRes.nome_completo || [data.nome, data.sobrenome].filter(Boolean).join(' ').trim(),
           email: data.email,
         } as User;
       }
@@ -72,7 +72,7 @@ export function useAuth() {
     const cliente = regRes as unknown as ClienteResponse;
     const loggedUser: User = {
       id: cliente.id,
-      nome: cliente.nome_completo || `${cliente.nome} ${cliente.sobrenome}`.trim(),
+      nome: cliente.nome_completo || [cliente.nome, cliente.sobrenome].filter(Boolean).join(' ').trim(),
       email: cliente.email,
     };
 

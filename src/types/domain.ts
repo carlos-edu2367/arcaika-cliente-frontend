@@ -309,7 +309,7 @@ export interface MensagemArky {
 export interface ClienteResponse {
   id: string;
   nome: string;
-  sobrenome: string;
+  sobrenome?: string;
   nome_completo: string;
   email: string;
   telefone: string;
