@@ -6,12 +6,14 @@ import { z } from 'zod'
 import { CheckCircle2, Eye, EyeOff, MapPin, Search, ArrowRight, ShieldCheck } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { authService } from '@/services/api/auth'
+import type { RegisterInput } from '@/services/api/auth'
 import { clientesService } from '@/services/api/clientes'
 import { useUIStore } from '@/stores/uiStore'
 import { cn } from '@/lib/utils'
 import { Spinner } from '@/components/ui/Spinner'
 import axios from 'axios'
 import { OnboardingArky } from '@/components/Onboarding/OnboardingArky'
+import { mascararDocumento, validarDocumento } from '@/utils/validators'
 
 // ---------------------------------------------------------------------------
 // Componentes de Apoio
@@ -57,18 +59,21 @@ function ForcaSenha({ senha }: { senha: string }) {
 // ---------------------------------------------------------------------------
 
 const step1Schema = z.object({
+  cpf: z.string().refine(validarDocumento, 'CPF ou CNPJ inválido'),
   nome: z.string().min(2, 'Nome muito curto'),
-  sobrenome: z.string().min(2, 'Sobrenome muito curto'),
+  sobrenome: z.string().optional(),
   email: z.string().email('E-mail inválido'),
   senha: z.string().min(8, 'Mínimo 8 caracteres'),
   confirmarSenha: z.string(),
 }).refine((d) => d.senha === d.confirmarSenha, {
   message: 'As senhas não coincidem',
   path: ['confirmarSenha'],
-})
+}).refine(
+  (d) => d.cpf.replace(/\D/g, '').length === 14 || (d.sobrenome ?? '').trim().length >= 2,
+  { message: 'Sobrenome muito curto', path: ['sobrenome'] },
+)
 
 const step2Schema = z.object({
-  cpf: z.string().min(14, 'CPF incompleto'),
   telefone: z.string().min(14, 'Telefone incompleto'),
 })
 
@@ -92,24 +97,49 @@ type Step3Data = z.infer<typeof step3Schema>
 
 function Step1({ onNext }: { onNext: (d: Step1Data) => void }) {
   const [showPass, setShowPass] = useState(false)
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<Step1Data>({ 
-    resolver: zodResolver(step1Schema) 
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<Step1Data>({
+    resolver: zodResolver(step1Schema)
   })
   const senha = watch('senha', '')
+  const documento = watch('cpf', '')
+  const ehPessoaJuridica = documento.replace(/\D/g, '').length === 14
+
+  useEffect(() => {
+    if (ehPessoaJuridica) setValue('sobrenome', '')
+  }, [ehPessoaJuridica, setValue])
 
   return (
     <form onSubmit={handleSubmit(onNext)} className="space-y-4 animate-in fade-in slide-in-from-right-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div>
+        <label className="text-xs font-bold text-neutral-500 uppercase">CPF / CNPJ</label>
+        <input
+          {...register('cpf')}
+          onChange={(e) => setValue('cpf', mascararDocumento(e.target.value), { shouldValidate: false })}
+          placeholder="000.000.000-00"
+          inputMode="numeric"
+          className="w-full mt-1 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-400"
+        />
+        {errors.cpf && <p className="text-[10px] text-error mt-1 font-medium">{errors.cpf.message}</p>}
+      </div>
+      <div className={ehPessoaJuridica ? '' : 'grid grid-cols-2 gap-3'}>
         <div>
-          <label className="text-xs font-bold text-neutral-500 uppercase">Nome</label>
-          <input {...register('nome')} placeholder="João" className="w-full mt-1 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-400" />
+          <label className="text-xs font-bold text-neutral-500 uppercase">
+            {ehPessoaJuridica ? 'Razão social' : 'Nome'}
+          </label>
+          <input
+            {...register('nome')}
+            placeholder={ehPessoaJuridica ? 'Construtora Alfa LTDA' : 'João'}
+            className="w-full mt-1 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-400"
+          />
           {errors.nome && <p className="text-[10px] text-error mt-1 font-medium">{errors.nome.message}</p>}
         </div>
-        <div>
-          <label className="text-xs font-bold text-neutral-500 uppercase">Sobrenome</label>
-          <input {...register('sobrenome')} placeholder="Silva" className="w-full mt-1 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-400" />
-          {errors.sobrenome && <p className="text-[10px] text-error mt-1 font-medium">{errors.sobrenome.message}</p>}
-        </div>
+        {!ehPessoaJuridica && (
+          <div>
+            <label className="text-xs font-bold text-neutral-500 uppercase">Sobrenome</label>
+            <input {...register('sobrenome')} placeholder="Silva" className="w-full mt-1 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-400" />
+            {errors.sobrenome && <p className="text-[10px] text-error mt-1 font-medium">{errors.sobrenome.message}</p>}
+          </div>
+        )}
       </div>
       <div>
         <label className="text-xs font-bold text-neutral-500 uppercase">Seu Melhor E-mail</label>
@@ -142,21 +172,15 @@ function Step1({ onNext }: { onNext: (d: Step1Data) => void }) {
 }
 
 function Step2({ onNext, onBack }: { onNext: (d: Step2Data) => void; onBack: () => void }) {
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<Step2Data>({ 
-    resolver: zodResolver(step2Schema) 
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<Step2Data>({
+    resolver: zodResolver(step2Schema)
   })
 
-  const maskCPF = (v: string) => v.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})/, '$1-$2').slice(0, 14)
   const maskTel = (v: string) => v.replace(/\D/g, '').replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 15)
 
   return (
     <form onSubmit={handleSubmit(onNext)} className="space-y-6 animate-in fade-in slide-in-from-right-4">
       <div className="space-y-4">
-        <div>
-          <label className="text-xs font-bold text-neutral-500 uppercase">CPF</label>
-          <input {...register('cpf')} onChange={(e) => setValue('cpf', maskCPF(e.target.value))} placeholder="000.000.000-00" className="w-full mt-1 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-400" />
-          {errors.cpf && <p className="text-[10px] text-error mt-1 font-medium">{errors.cpf.message}</p>}
-        </div>
         <div>
           <label className="text-xs font-bold text-neutral-500 uppercase">Celular / WhatsApp</label>
           <input {...register('telefone')} onChange={(e) => setValue('telefone', maskTel(e.target.value))} placeholder="(00) 00000-0000" className="w-full mt-1 border border-neutral-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-400" />
@@ -326,14 +350,15 @@ export default function Cadastro() {
 
     try {
       // 1. Registro
-      const payload = {
+      const sobrenome = (state.step1.sobrenome ?? '').trim()
+      const payload: RegisterInput = {
         nome: state.step1.nome,
-        sobrenome: state.step1.sobrenome,
         email: state.step1.email,
         senha: state.step1.senha,
-        cpf: state.step2.cpf.replace(/\D/g, ''),
+        cpf: state.step1.cpf.replace(/\D/g, ''),
         telefone: state.step2.telefone.replace(/\D/g, '')
       }
+      if (sobrenome) payload.sobrenome = sobrenome
       if (parceiroQrSlug && !parceiroErro) {
         Object.assign(payload, { parceiro_qr_slug: parceiroQrSlug })
       }

@@ -8,7 +8,7 @@ export interface LoginInput {
 
 export interface RegisterInput {
   nome: string
-  sobrenome: string
+  sobrenome?: string
   email: string
   senha: string
   cpf: string       
